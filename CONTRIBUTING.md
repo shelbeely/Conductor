@@ -1,8 +1,6 @@
 # Contributing to Conductor
 
-Thank you for your interest in contributing to Conductor!
-
-## Development Setup
+## Development setup
 
 1. Fork and clone the repository
 2. Install dependencies: `bun install` or `npm install`
@@ -11,7 +9,7 @@ Thank you for your interest in contributing to Conductor!
 5. Run type checking: `bun run type-check`
 6. Submit a pull request
 
-## Code Style
+## Code style
 
 - Use TypeScript for all new code
 - Follow existing code patterns
@@ -19,7 +17,7 @@ Thank you for your interest in contributing to Conductor!
 - Add comments for complex logic
 - Keep functions small and focused
 
-### React Best Practices
+### React best practices
 
 This project follows the [Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) for UI components. 
 
@@ -36,7 +34,7 @@ This project follows the [Vercel React Best Practices](https://github.com/vercel
 
 Full reference available in `.github/skills/react-best-practices.md` and online in the [agent-skills repository](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices).
 
-## Module Structure
+## Module structure
 
 ```
 src/
@@ -50,23 +48,23 @@ src/
 └── index.tsx  - Entry point
 ```
 
-## Adding New Features
+## Adding new features
 
-### Adding a New AI Provider
+### Adding a new AI provider
 
 1. Create a new provider class in `src/ai/agent.ts` extending `AIProvider`
 2. Implement the `processCommand()` method
 3. Add the provider to the `AIAgent` switch statement
 4. Update configuration types and documentation
 
-### Adding New Tool Schemas
+### Adding new tool schemas
 
 1. Define the schema using Zod in `src/ai/agent.ts`
 2. Add to the `tools` array
 3. Implement the handler in `App.tsx` `executeToolCalls()`
 4. Update documentation
 
-### Adding UI Components
+### Adding UI components
 
 1. Create component in `src/ui/`
 2. Use Ink components (Box, Text, useInput, etc.)
@@ -86,7 +84,7 @@ Currently, testing is manual. To test:
    - Metadata display
    - Error handling
 
-## Pull Request Guidelines
+## Pull request guidelines
 
 - Keep PRs focused on a single feature or fix
 - Update documentation for new features
@@ -94,7 +92,7 @@ Currently, testing is manual. To test:
 - Test your changes thoroughly
 - Write clear commit messages
 
-## Reporting Issues
+## Reporting issues
 
 When reporting bugs, please include:
 - OS and version
@@ -105,9 +103,9 @@ When reporting bugs, please include:
 - Expected vs actual behavior
 - Error messages or logs
 
-## Feature Requests
+## Feature requests
 
-We welcome feature requests! Please:
+Please:
 - Check if it's already been requested
 - Describe the use case
 - Explain the expected behavior
@@ -115,6 +113,4 @@ We welcome feature requests! Please:
 
 ## Questions?
 
-Feel free to open an issue for any questions about contributing.
-
-Thank you for helping make Conductor better! 🎵
+Open an issue if you have questions about contributing.
