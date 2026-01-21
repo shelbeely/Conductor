@@ -5,6 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { Box, Text } from 'ink';
+import humanizeDuration from 'humanize-duration';
 import type { TrackInfo } from '../mpd/client';
 
 interface QueueProps {
@@ -25,6 +26,15 @@ const formatDuration = (seconds?: number): string => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const formatHumanDuration = (seconds?: number): string => {
+  if (!seconds || seconds < 60) return '';
+  return humanizeDuration(seconds * 1000, { 
+    largest: 1,
+    round: true,
+    units: ['h', 'm']
+  });
 };
 
 export const Queue: React.FC<QueueProps> = React.memo(({

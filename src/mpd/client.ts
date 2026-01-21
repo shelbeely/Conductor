@@ -58,7 +58,7 @@ export class MPDClient {
   private mpc: MPC | null;
   private config: MPDConfig;
   private connected: boolean = false;
-  private reconnectTimer?: Timer;
+  private reconnectTimer?: NodeJS.Timeout;
 
   constructor(config: MPDConfig = { host: 'localhost', port: 6600 }) {
     this.config = config;
