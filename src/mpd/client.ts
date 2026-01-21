@@ -39,6 +39,21 @@ export interface PlayerStatus {
   bitrate?: number;
 }
 
+// Type guard for TrackInfo
+function isTrackInfo(obj: unknown): obj is TrackInfo {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'file' in obj &&
+    typeof (obj as any).file === 'string'
+  );
+}
+
+// Type guard for array of TrackInfo
+function isTrackInfoArray(arr: unknown): arr is TrackInfo[] {
+  return Array.isArray(arr) && arr.every(isTrackInfo);
+}
+
 export class MPDClient {
   private mpc: MPC | null;
   private config: MPDConfig;
@@ -90,7 +105,8 @@ export class MPDClient {
       const status = await this.mpc.status.status();
       if (status.song !== undefined) {
         const songs = await this.mpc.currentPlaylist.playlistInfo();
-        return (songs[status.song] as any) || null;
+        const song = songs[status.song];
+        return isTrackInfo(song) ? song : null;
       }
       return null;
     } catch (error) {
@@ -204,7 +220,7 @@ export class MPDClient {
     if (!this.connected || !this.mpc) return [];
     try {
       const queue = await this.mpc.currentPlaylist.playlistInfo();
-      return (queue || []) as any;
+      return isTrackInfoArray(queue) ? queue : [];
     } catch (error) {
       console.error('Error getting queue:', error);
       return [];
@@ -242,7 +258,7 @@ export class MPDClient {
     if (!this.connected || !this.mpc) return [];
     try {
       const results = await this.mpc.database.search([[type, query]]);
-      return (results || []) as any;
+      return isTrackInfoArray(results) ? results : [];
     } catch (error) {
       console.error('Error searching:', error);
       return [];
@@ -253,7 +269,7 @@ export class MPDClient {
     if (!this.connected || !this.mpc) return [];
     try {
       const results = await this.mpc.database.listAll(path);
-      return (results || []) as any;
+      return isTrackInfoArray(results) ? results : [];
     } catch (error) {
       console.error('Error listing files:', error);
       return [];

@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Tool schemas for music operations
 export const SearchMusicSchema = z.object({
@@ -179,7 +180,10 @@ Be concise and friendly in your responses.`,
             function: {
               name: t.name,
               description: t.description,
-              parameters: this.zodToJsonSchema(t.schema),
+              parameters: zodToJsonSchema(t.schema, { 
+                target: 'openApi3',
+                $refStrategy: 'none'
+              }),
             },
           })),
         }),
@@ -204,46 +208,6 @@ Be concise and friendly in your responses.`,
     } catch (error) {
       throw new Error(`OpenRouter request failed: ${error}`);
     }
-  }
-
-  private zodToJsonSchema(schema: z.ZodType): any {
-    // Simple conversion - in production use a proper library
-    const shape = (schema as any)._def.shape();
-    const properties: any = {};
-    const required: string[] = [];
-
-    for (const [key, value] of Object.entries(shape)) {
-      const field = value as any;
-      properties[key] = {
-        type: this.getJsonType(field),
-        description: field._def.description,
-      };
-      
-      if (field._def.typeName !== 'ZodOptional') {
-        required.push(key);
-      }
-
-      // Handle enums
-      if (field._def.typeName === 'ZodEnum') {
-        properties[key].enum = field._def.values;
-      }
-    }
-
-    return {
-      type: 'object',
-      properties,
-      required,
-    };
-  }
-
-  private getJsonType(field: any): string {
-    const typeName = field._def.typeName;
-    if (typeName === 'ZodString') return 'string';
-    if (typeName === 'ZodNumber') return 'number';
-    if (typeName === 'ZodBoolean') return 'boolean';
-    if (typeName === 'ZodArray') return 'array';
-    if (typeName === 'ZodEnum') return 'string';
-    return 'string';
   }
 }
 

@@ -38,6 +38,53 @@ export interface EnrichedTrack extends TrackInfo {
   releaseInfo?: ReleaseInfo;
 }
 
+// MusicBrainz API response types
+interface MBArtistResponse {
+  artists?: Array<{
+    id: string;
+    name: string;
+    'sort-name'?: string;
+    disambiguation?: string;
+    type?: string;
+    gender?: string;
+    country?: string;
+    'life-span'?: {
+      begin?: string;
+      end?: string;
+    };
+  }>;
+}
+
+interface MBReleaseResponse {
+  releases?: Array<{
+    id: string;
+    title: string;
+    date?: string;
+    country?: string;
+    barcode?: string;
+    status?: string;
+    'artist-credit'?: Array<{
+      name: string;
+      artist: {
+        id: string;
+        name: string;
+        'sort-name'?: string;
+      };
+    }>;
+  }>;
+}
+
+interface MBCoverArtResponse {
+  images?: Array<{
+    front?: boolean;
+    image?: string;
+    thumbnails?: {
+      small?: string;
+      large?: string;
+    };
+  }>;
+}
+
 /**
  * MusicBrainz API Client
  * Provides metadata enrichment for tracks
@@ -74,7 +121,7 @@ export class MusicBrainzClient {
         return null;
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as MBArtistResponse;
       const artist = data.artists?.[0];
 
       if (!artist) return null;
@@ -132,7 +179,7 @@ export class MusicBrainzClient {
         return null;
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as MBReleaseResponse;
       const release = data.releases?.[0];
 
       if (!release) return null;
@@ -196,8 +243,8 @@ export class MusicBrainzClient {
         return null;
       }
 
-      const data = await response.json() as any;
-      const frontCover = data.images?.find((img: any) => img.front);
+      const data = await response.json() as MBCoverArtResponse;
+      const frontCover = data.images?.find((img) => img.front);
       const coverUrl = frontCover?.thumbnails?.small || frontCover?.image;
 
       this.cache.set(cacheKey, coverUrl);
