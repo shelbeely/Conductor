@@ -19,6 +19,19 @@ Thank you for your interest in contributing to Conductor!
 - Add comments for complex logic
 - Keep functions small and focused
 
+### React Best Practices
+
+This project follows the [Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) for UI components. Key guidelines:
+
+- **Hoist helper functions** outside components to prevent re-creation on every render
+- **Use React.memo()** to prevent unnecessary re-renders for components with props
+- **Use useMemo()** for expensive computations or derived state
+- **Use useCallback()** for functions passed as props to maintain stable references
+- **Use lazy initialization** for expensive initial state: `useState(() => computation())`
+- **Use functional setState** when state depends on previous value: `setState(prev => ...)`
+
+See `.github/copilot-instructions.md` for complete guidelines.
+
 ## Module Structure
 
 ```

@@ -256,6 +256,10 @@ bun run type-check
 bun run build
 ```
 
+### Code Quality
+
+This project follows the [Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) for optimal performance. See `.github/copilot-instructions.md` for development guidelines.
+
 ## License
 
 MIT
