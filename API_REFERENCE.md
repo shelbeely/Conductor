@@ -297,6 +297,110 @@ Clears the conversation history. Useful for starting fresh or managing memory us
 agent.clearHistory();
 ```
 
+#### `listAvailableModels(): Promise<ModelInfo[]>` *NEW in v0.2.0*
+
+Lists all available models from the current AI provider.
+
+```typescript
+const models = await agent.listAvailableModels();
+models.forEach(model => {
+  console.log(`${model.name}: ${model.description}`);
+  if (model.pricing) {
+    console.log(`  Cost: ${model.pricing.prompt} per prompt token`);
+  }
+});
+```
+
+**Returns:** Array of `ModelInfo` objects containing:
+- `id` (string): Model identifier
+- `name` (string): Display name
+- `description` (string, optional): Model description
+- `contextLength` (number, optional): Maximum context tokens
+- `pricing` (object, optional): Cost information
+  - `prompt` (string): Cost per prompt token
+  - `completion` (string): Cost per completion token
+
+**Provider-specific behavior:**
+- **OpenRouter**: Fetches from `/api/v1/models` endpoint (returns full catalog)
+- **Ollama**: Queries local `/api/tags` endpoint (returns installed models)
+- **Anthropic**: Returns hardcoded list of Claude models
+
+**Example output:**
+
+```typescript
+[
+  {
+    id: 'llama3.2',
+    name: 'Llama 3.2',
+    description: 'Fast and efficient local model',
+    contextLength: 8192
+  },
+  {
+    id: 'anthropic/claude-3.5-sonnet',
+    name: 'Claude 3.5 Sonnet',
+    description: 'Anthropic\'s latest model',
+    contextLength: 200000,
+    pricing: {
+      prompt: '$3.00 per million tokens',
+      completion: '$15.00 per million tokens'
+    }
+  }
+]
+```
+
+#### `setModel(modelId: string): void` *NEW in v0.2.0*
+
+Switches to a different AI model without restarting.
+
+```typescript
+agent.setModel('llama3.2');
+agent.setModel('anthropic/claude-3.5-sonnet');
+```
+
+**Parameters:**
+- `modelId` (string): Model identifier from your provider
+
+**Provider-specific model IDs:**
+- **Ollama**: Model name as shown by `ollama list` (e.g., `'llama3.2'`, `'mistral'`)
+- **OpenRouter**: Full model path (e.g., `'anthropic/claude-3.5-sonnet'`, `'openai/gpt-4'`)
+- **Anthropic**: Claude model version (e.g., `'claude-3-opus'`, `'claude-3-sonnet'`)
+
+**Note:** Model change takes effect immediately for the next command. Previous conversation history is preserved.
+
+#### `getCurrentModel(): string` *NEW in v0.2.0*
+
+Returns the currently active model identifier.
+
+```typescript
+const currentModel = agent.getCurrentModel();
+console.log(`Using model: ${currentModel}`);
+```
+
+**Returns:** Model identifier string or `'unknown'` if unavailable
+
+**Example:**
+```typescript
+agent.setModel('llama3.2');
+console.log(agent.getCurrentModel());  // 'llama3.2'
+```
+
+#### `getProvider(): string` *NEW in v0.2.0*
+
+Returns the name of the current AI provider.
+
+```typescript
+const provider = agent.getProvider();
+console.log(`Provider: ${provider}`);
+```
+
+**Returns:** Provider name: `'openrouter'`, `'ollama'`, or `'anthropic'`
+
+**Example:**
+```typescript
+const agent = new AIAgent({ provider: 'ollama' });
+console.log(agent.getProvider());  // 'ollama'
+```
+
 ### AI Providers
 
 Each provider implements the same interface but handles requests differently.
@@ -631,6 +735,37 @@ Clears the playback queue.
   confirm: boolean;  // Safety confirmation (default: true)
 }
 ```
+
+### generate_playlist *NEW in v0.2.0*
+
+Generates an AI-curated playlist based on criteria.
+
+**Schema:**
+```typescript
+{
+  criteria: string;          // Playlist criteria: mood, genre, energy, theme, or activity
+  targetLength?: number;     // Desired number of tracks (default: 20)
+  shuffleResults?: boolean;  // Shuffle the generated playlist
+}
+```
+
+**Example:**
+```typescript
+{
+  criteria: 'relaxing jazz for studying',
+  targetLength: 30,
+  shuffleResults: false
+}
+```
+
+The AI analyzes your library, searches for tracks matching the criteria, and returns a curated playlist. Works best with well-tagged music files.
+
+**Criteria examples:**
+- Mood: `'relaxing'`, `'upbeat'`, `'melancholy'`, `'energetic'`
+- Genre: `'jazz'`, `'rock'`, `'classical'`, `'electronic'`
+- Activity: `'workout'`, `'study'`, `'party'`, `'dinner'`
+- Energy: `'high-energy'`, `'chill'`, `'mellow'`, `'intense'`
+- Theme: `'90s nostalgia'`, `'summer vibes'`, `'rainy day'`
 
 ---
 

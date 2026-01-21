@@ -50,6 +50,12 @@ export const ClearQueueSchema = z.object({
   confirm: z.boolean().default(true).describe('Confirm clearing the queue'),
 });
 
+export const GeneratePlaylistSchema = z.object({
+  criteria: z.string().describe('Playlist criteria: mood, genre, energy level, theme, or activity'),
+  targetLength: z.number().optional().describe('Desired number of tracks (default: 20)'),
+  shuffleResults: z.boolean().optional().describe('Shuffle the generated playlist'),
+});
+
 // Tool definitions
 export const tools = [
   {
@@ -92,6 +98,11 @@ export const tools = [
     description: 'Clear the entire playback queue',
     schema: ClearQueueSchema,
   },
+  {
+    name: 'generate_playlist',
+    description: 'Generate an AI-powered playlist based on mood, genre, energy level, theme, or activity. Examples: "upbeat workout music", "relaxing jazz", "90s nostalgia", "focus music"',
+    schema: GeneratePlaylistSchema,
+  },
 ];
 
 // AI Provider configuration
@@ -120,6 +131,17 @@ export interface AIResponse {
 /**
  * Base AI Provider Interface
  */
+export interface ModelInfo {
+  id: string;
+  name: string;
+  description?: string;
+  contextLength?: number;
+  pricing?: {
+    prompt?: string;
+    completion?: string;
+  };
+}
+
 export abstract class AIProvider {
   protected config: AIProviderConfig;
 
@@ -131,6 +153,10 @@ export abstract class AIProvider {
     userMessage: string,
     context: AIMessage[]
   ): Promise<AIResponse>;
+
+  abstract listModels(): Promise<ModelInfo[]>;
+  
+  abstract setModel(modelId: string): void;
 }
 
 /**
@@ -211,6 +237,46 @@ Be concise and friendly in your responses.`,
     } catch (error) {
       throw new Error(`OpenRouter request failed: ${error}`);
     }
+  }
+
+  async listModels(): Promise<ModelInfo[]> {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch models: ${response.statusText}`);
+      }
+
+      const data = await response.json() as any;
+      const models = data.data || [];
+
+      return models.map((m: any) => ({
+        id: m.id,
+        name: m.name || m.id,
+        description: m.description,
+        contextLength: m.context_length,
+        pricing: {
+          prompt: m.pricing?.prompt,
+          completion: m.pricing?.completion,
+        },
+      }));
+    } catch (error) {
+      throw new Error(`Failed to list OpenRouter models: ${error}`);
+    }
+  }
+
+  setModel(modelId: string): void {
+    this.model = modelId;
+  }
+
+  getCurrentModel(): string {
+    return this.model;
   }
 }
 
@@ -294,6 +360,46 @@ Be concise and friendly.`;
     }
     return undefined;
   }
+
+  async listModels(): Promise<ModelInfo[]> {
+    try {
+      const response = await fetch(`${this.baseURL}/api/tags`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Ollama models: ${response.statusText}`);
+      }
+
+      const data = await response.json() as any;
+      const models = data.models || [];
+
+      return models.map((m: any) => ({
+        id: m.name,
+        name: m.name,
+        description: `Size: ${this.formatBytes(m.size || 0)}`,
+        contextLength: undefined,
+      }));
+    } catch (error) {
+      throw new Error(`Failed to list Ollama models: ${error}`);
+    }
+  }
+
+  setModel(modelId: string): void {
+    this.model = modelId;
+  }
+
+  getCurrentModel(): string {
+    return this.model;
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
 }
 
 /**
@@ -320,6 +426,44 @@ export class AnthropicProvider extends AIProvider {
     // Implementation similar to OpenRouter but using Anthropic's API
     // Simplified for now
     throw new Error('Anthropic provider not fully implemented. Use OpenRouter or Ollama.');
+  }
+
+  async listModels(): Promise<ModelInfo[]> {
+    // Anthropic has a fixed set of models
+    return [
+      {
+        id: 'claude-3-5-sonnet-20241022',
+        name: 'Claude 3.5 Sonnet',
+        description: 'Most capable Claude model',
+        contextLength: 200000,
+      },
+      {
+        id: 'claude-3-opus-20240229',
+        name: 'Claude 3 Opus',
+        description: 'Powerful model for complex tasks',
+        contextLength: 200000,
+      },
+      {
+        id: 'claude-3-sonnet-20240229',
+        name: 'Claude 3 Sonnet',
+        description: 'Balanced performance',
+        contextLength: 200000,
+      },
+      {
+        id: 'claude-3-haiku-20240307',
+        name: 'Claude 3 Haiku',
+        description: 'Fast and cost-effective',
+        contextLength: 200000,
+      },
+    ];
+  }
+
+  setModel(modelId: string): void {
+    this.model = modelId;
+  }
+
+  getCurrentModel(): string {
+    return this.model;
   }
 }
 
@@ -376,5 +520,24 @@ export class AIAgent {
 
   clearHistory(): void {
     this.conversationHistory = [];
+  }
+
+  async listAvailableModels(): Promise<ModelInfo[]> {
+    return await this.provider.listModels();
+  }
+
+  setModel(modelId: string): void {
+    this.provider.setModel(modelId);
+  }
+
+  getCurrentModel(): string {
+    return (this.provider as any).getCurrentModel?.() || 'unknown';
+  }
+
+  getProvider(): string {
+    if (this.provider instanceof OpenRouterProvider) return 'openrouter';
+    if (this.provider instanceof OllamaProvider) return 'ollama';
+    if (this.provider instanceof AnthropicProvider) return 'anthropic';
+    return 'unknown';
   }
 }

@@ -573,6 +573,285 @@ Shuffle through ambient tracks, removing each after playing. Good for exploring 
 - Ambient and background music work great on infinite repeat + random
 - Concept albums and story-driven music need sequential playback
 
+## AI-powered playlist generation
+
+**NEW in v0.2.0:** Create smart playlists using natural language descriptions.
+
+### How it works
+
+Conductor's AI analyzes your command, searches your library, and builds a playlist matching your criteria. No more manual curation - just describe what you want.
+
+Type commands like:
+
+```
+create a relaxing playlist
+make a workout playlist
+generate upbeat jazz for focus
+build a 30-track party playlist
+```
+
+The AI considers mood, genre, activity, energy level, and themes to pick tracks.
+
+### Mood-based playlists
+
+```
+create a relaxing playlist
+generate a chill playlist
+make a melancholy playlist
+build an energetic playlist
+create an upbeat playlist
+```
+
+The AI interprets mood words and searches for matching tracks. Works better if your files have descriptive genre or comment tags.
+
+### Activity-based playlists
+
+```
+make a workout playlist
+create study music
+generate dinner party music
+build a focus playlist
+create running music
+```
+
+Playlists designed for specific situations. The AI picks tracks with appropriate energy and vibe for each activity.
+
+### Genre-focused playlists
+
+```
+create a jazz playlist
+make a rock playlist
+generate classical music
+build a metal playlist
+```
+
+Stick to one genre. Most straightforward type since it just searches your genre tags.
+
+### Energy level playlists
+
+```
+create a high-energy playlist
+make a low-energy playlist
+generate intense music
+build mellow tracks
+```
+
+Energy level gets translated to genre patterns. "High-energy" might mean metal or upbeat electronic. "Mellow" might pull jazz or acoustic.
+
+### Target length
+
+Specify how many tracks you want:
+
+```
+create a 20-track jazz playlist
+make 30 songs for working out
+generate a 2-hour relaxing playlist
+build a 50-track party mix
+```
+
+Default is 20 tracks if you don't specify. The AI tries to hit your target but might return fewer if your library doesn't have enough matches.
+
+### Shuffled results
+
+```
+create a shuffled workout playlist
+make a randomized jazz mix
+```
+
+Playlists get shuffled before adding to queue. Good for variety within the criteria.
+
+### Combining criteria
+
+Get specific:
+
+```
+create a relaxing jazz playlist with 30 tracks
+make an upbeat workout playlist
+generate chill electronic music for studying
+build a high-energy rock playlist for running
+create a mellow acoustic playlist for evenings
+```
+
+Mix mood, genre, activity, and length. The more specific you are, the more targeted the results.
+
+### Theme-based playlists
+
+```
+create a 90s nostalgia playlist
+make summer vibes music
+generate rainy day tracks
+build road trip music
+create late night listening
+```
+
+Thematic playlists based on era, season, or situation. These work if your library has appropriate tags or if the AI can map themes to genres.
+
+### Best practices
+
+**Tag your library well:**
+
+Playlist generation depends entirely on your file metadata. If tracks don't have genre, year, or comment tags, the AI can't find them.
+
+Use `beets` or `MusicBrainz Picard` to tag your collection properly.
+
+**Be specific:**
+
+"Create a playlist" is vague. "Create an upbeat 90s rock playlist" gives the AI clear criteria.
+
+**Adjust and refine:**
+
+If the first playlist isn't quite right, try rephrasing:
+
+```
+make a more energetic workout playlist
+create a calmer jazz playlist
+generate something more upbeat
+```
+
+The AI interprets relative adjustments if they make sense in context.
+
+**Check the queue:**
+
+After generation, look at what got added. If it's not what you wanted, clear and try again with different words.
+
+### Limitations
+
+**Library size matters:**
+
+Small libraries (< 100 albums) might not have enough variety for specific requests. "Create a relaxing bebop playlist" needs bebop tracks in your library.
+
+**Tag quality:**
+
+Untagged or badly tagged files won't match searches. "Generate a jazz playlist" returns nothing if your jazz albums aren't tagged with genre: jazz.
+
+**AI interpretation:**
+
+Different models interpret criteria differently. Claude might pick different tracks than Llama for "relaxing." If you don't like the results, try a different model.
+
+**No learning:**
+
+Playlist generation doesn't learn from your listening history. It can't know which tracks you love or hate. It just searches tags.
+
+## Model management
+
+**NEW in v0.2.0:** Switch AI models on the fly without restarting Conductor.
+
+### Why switch models?
+
+Different models have different strengths:
+
+- **Faster models** (like Llama 3.2): Quick responses, good for simple commands
+- **Smarter models** (like Claude 3.5): Better understanding, handle complex queries
+- **Cheaper models**: Lower API costs for cloud providers
+- **Larger context**: Some models handle longer conversations better
+
+You can start with a fast model for basic playback and switch to a smarter one when you want playlist generation or complex searches.
+
+### List available models
+
+```
+show available models
+list models
+what models can I use
+```
+
+Conductor displays models from your current provider:
+
+- **Ollama**: Models installed locally (`ollama list`)
+- **OpenRouter**: Full catalog of available models
+- **Anthropic**: Claude models (Opus, Sonnet, Haiku)
+
+Output includes:
+- Model ID (what you use to switch)
+- Display name
+- Description
+- Context length (max tokens)
+- Pricing (for cloud providers)
+
+### Switch models
+
+```
+use llama3.2
+switch to claude
+change to gpt-4
+use mistral model
+```
+
+The model changes immediately. Your next command uses the new model. Conversation history persists.
+
+**Model names by provider:**
+
+- **Ollama**: Just the model name (e.g., `llama3.2`, `mistral`, `codellama`)
+- **OpenRouter**: Full path (e.g., `anthropic/claude-3.5-sonnet`, `openai/gpt-4-turbo`)
+- **Anthropic**: Version name (e.g., `claude-3-opus`, `claude-3-sonnet`)
+
+Check the available models list to see exact names.
+
+### Check current model
+
+```
+what model are we using
+which model is active
+show current model
+```
+
+Displays the active model name. Useful after switching to confirm it worked.
+
+### Model persistence
+
+Model selection lasts for the session. When you restart Conductor, it reverts to the default from your `.env` file.
+
+To change the default, edit `.env`:
+
+```bash
+AI_MODEL=llama3.2           # For Ollama
+AI_MODEL=anthropic/claude-3.5-sonnet  # For OpenRouter
+```
+
+### Performance differences
+
+**Fast models (Llama 3.2, Mistral 7B):**
+- Respond in 1-3 seconds
+- Good for simple commands (play, pause, volume)
+- Might misunderstand complex requests
+- Free with Ollama
+
+**Smart models (Claude 3.5, GPT-4):**
+- Respond in 3-7 seconds
+- Understand nuanced commands
+- Better at playlist generation
+- Cost money with cloud providers
+
+**Huge models (Claude Opus, GPT-4 Turbo):**
+- Slowest responses (5-10 seconds)
+- Best understanding
+- Overkill for music control
+- Most expensive
+
+For most users, Llama 3.2 (local) or Claude Sonnet (cloud) hits the sweet spot.
+
+### Model-specific quirks
+
+**Llama models:**
+- Sometimes output extra text along with tool calls
+- Might need clearer phrasing
+- Fast and free
+
+**Claude models:**
+- Very conversational
+- Explains actions in detail
+- Excellent natural language understanding
+- More expensive than others
+
+**GPT models:**
+- Good balance of speed and understanding
+- Similar to Claude but slightly faster
+- Mid-range pricing
+
+Try different models and see which style you prefer.
+
+### Troubleshooting model switches
+
 ## Troubleshooting and FAQ
 
 **"Nothing happens when I type a command"**

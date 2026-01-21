@@ -55,6 +55,8 @@ export const App: React.FC<AppProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [albumArtAscii, setAlbumArtAscii] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [currentModel, setCurrentModel] = useState<string>('');
+  const [showModelSelector, setShowModelSelector] = useState(false);
 
   // Initialize
   useEffect(() => {
@@ -67,6 +69,9 @@ export const App: React.FC<AppProps> = ({
 
         // Initialize album art
         await artManager.initialize();
+
+        // Get current model
+        setCurrentModel(aiAgent.getCurrentModel());
 
         // Initial data fetch
         await updatePlayerState();
@@ -138,6 +143,25 @@ export const App: React.FC<AppProps> = ({
     setAiResponse('Thinking...');
 
     try {
+      // Check for special commands
+      if (command.toLowerCase().includes('list model')) {
+        const models = await aiAgent.listAvailableModels();
+        const modelList = models.map(m => `${m.id}: ${m.name}`).join('\n');
+        setAiResponse(`Available models:\n${modelList}`);
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (command.toLowerCase().includes('switch to')) {
+        const modelMatch = command.match(/switch to (.+)/i);
+        if (modelMatch) {
+          const modelId = modelMatch[1].trim();
+          await handleModelSelect(modelId);
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       const response = await aiAgent.processCommand(command);
       setAiResponse(response.message || 'Command processed');
 
@@ -185,6 +209,9 @@ export const App: React.FC<AppProps> = ({
             if (call.arguments.confirm) {
               await mpdClient.clearQueue();
             }
+            break;
+          case 'generate_playlist':
+            await handleGeneratePlaylist(call.arguments);
             break;
         }
       } catch (err) {
@@ -259,6 +286,83 @@ export const App: React.FC<AppProps> = ({
     }
   };
 
+  const handleGeneratePlaylist = async (args: any) => {
+    try {
+      const criteria = args.criteria || '';
+      const targetLength = args.targetLength || 20;
+      const shuffle = args.shuffleResults !== false;
+
+      setAiResponse(`Generating playlist: ${criteria}...`);
+
+      // Get all tracks from library
+      const allTracks = await mpdClient.listAll();
+      
+      if (allTracks.length === 0) {
+        setAiResponse('No tracks found in library');
+        return;
+      }
+
+      // Use AI to analyze criteria and select tracks
+      // For now, use a simple heuristic: search for keywords in the criteria
+      const keywords = criteria.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+      let selectedTracks: TrackInfo[] = [];
+
+      // Search for tracks matching criteria
+      for (const keyword of keywords) {
+        const results = await mpdClient.search('any', keyword);
+        selectedTracks = [...selectedTracks, ...results];
+      }
+
+      // Remove duplicates
+      const uniqueTracks = Array.from(
+        new Map(selectedTracks.map(t => [t.file, t])).values()
+      );
+
+      // Limit to target length
+      let finalTracks = uniqueTracks.slice(0, targetLength);
+
+      // If not enough matches, add random tracks
+      if (finalTracks.length < targetLength) {
+        const remaining = targetLength - finalTracks.length;
+        const randomTracks = allTracks
+          .filter(t => !finalTracks.some(ft => ft.file === t.file))
+          .sort(() => Math.random() - 0.5)
+          .slice(0, remaining);
+        finalTracks = [...finalTracks, ...randomTracks];
+      }
+
+      // Shuffle if requested
+      if (shuffle) {
+        finalTracks.sort(() => Math.random() - 0.5);
+      }
+
+      // Clear queue and add tracks
+      await mpdClient.clearQueue();
+      for (const track of finalTracks) {
+        await mpdClient.addToQueue(track.file);
+      }
+
+      setAiResponse(`Generated playlist with ${finalTracks.length} tracks based on: ${criteria}`);
+    } catch (err) {
+      setAiResponse(`Failed to generate playlist: ${err}`);
+    }
+  };
+
+  const handleModelSelect = async (modelId: string) => {
+    try {
+      aiAgent.setModel(modelId);
+      setCurrentModel(modelId);
+      setShowModelSelector(false);
+      setAiResponse(`Switched to model: ${modelId}`);
+    } catch (err) {
+      setAiResponse(`Failed to switch model: ${err}`);
+    }
+  };
+
+  const toggleModelSelector = () => {
+    setShowModelSelector(!showModelSelector);
+  };
+
   // Render
   if (error) {
     return (
@@ -282,7 +386,7 @@ export const App: React.FC<AppProps> = ({
         <Text bold color="cyan">
           🎵 CONDUCTOR - AI Music Player
         </Text>
-        <Text color="gray"> | MPD Client with {aiProvider} AI</Text>
+        <Text color="gray"> | MPD Client with {aiProvider} AI ({currentModel})</Text>
       </Box>
 
       <Box flexDirection="row" marginBottom={1}>
@@ -311,6 +415,12 @@ export const App: React.FC<AppProps> = ({
         aiResponse={aiResponse}
         isProcessing={isProcessing}
       />
+      
+      <Box marginTop={1}>
+        <Text color="gray" dimColor>
+          Commands: "generate a workout playlist", "list models", "switch to [model]" | Ctrl+C to quit
+        </Text>
+      </Box>
     </Box>
   );
 };

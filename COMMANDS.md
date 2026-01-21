@@ -798,9 +798,110 @@ find tracks by Coltrane
 
 Using words like "search" or "find" without "play" should trigger a search and show results without starting playback. Whether this works depends on the AI's interpretation.
 
-## Playlist commands
+## Playlist generation
 
-Saved playlists are an MPD feature that Conductor doesn't fully support through natural language yet. For now, use `mpc`:
+**NEW in v0.2.0:** AI-powered playlist generation based on mood, genre, activity, or energy level.
+
+### Mood-based playlists
+
+```
+create a relaxing playlist
+generate a chill playlist
+make a calming playlist
+build a soothing playlist
+create an energetic playlist
+generate an upbeat playlist
+make a melancholy playlist
+```
+
+The AI searches your library for tracks matching the mood and builds a queue.
+
+### Activity-based playlists
+
+```
+create a workout playlist
+make a focus playlist
+generate study music
+build a party playlist
+create running music
+make a cooking playlist
+generate dinner music
+build a morning playlist
+```
+
+Playlists designed for specific activities. The AI picks tracks with appropriate energy and vibe.
+
+### Genre-based playlists
+
+```
+create a jazz playlist
+make a rock playlist
+generate a classical playlist
+build a metal playlist
+create an electronic playlist
+```
+
+Focus on specific genres. Works best with well-tagged libraries.
+
+### Energy level playlists
+
+```
+create a high-energy playlist
+make a low-energy playlist
+generate an intense playlist
+build a mellow playlist
+```
+
+The AI interprets energy level and finds matching tracks.
+
+### Playlist with target length
+
+```
+create a 20-track jazz playlist
+make a 30-song workout playlist
+generate a 2-hour relaxing playlist
+build a 50-track party playlist
+```
+
+Specify how many tracks you want. Default is 20 if not specified.
+
+### Shuffled playlists
+
+```
+create a shuffled workout playlist
+make a randomized jazz playlist
+generate a mixed rock playlist
+```
+
+The AI generates the playlist and shuffles it before adding to queue.
+
+### Theme-based playlists
+
+```
+create a 90s nostalgia playlist
+make a summer vibes playlist
+generate a rainy day playlist
+build a road trip playlist
+create a late night playlist
+```
+
+Thematic playlists based on era, season, or situation.
+
+### Combining criteria
+
+```
+create a relaxing jazz playlist with 30 tracks
+make an upbeat workout playlist
+generate a chill electronic playlist for studying
+build a high-energy rock playlist for running
+create a mellow acoustic playlist for evenings
+```
+
+Mix mood, genre, activity, and length for precise playlists.
+
+## Saved playlists
+
+MPD's saved playlist feature requires `mpc` commands for now:
 
 ```bash
 # List saved playlists
@@ -819,18 +920,87 @@ mpc playlist "Evening Mix" add
 mpc rm "Old Playlist"
 ```
 
-After loading a playlist with `mpc load`, the tracks show up in Conductor's queue and you can control playback normally.
+After loading with `mpc load`, the tracks appear in Conductor's queue and you can control playback normally.
 
-Future natural language commands might look like:
+Future natural language commands for saved playlists might look like:
 
 ```
 load my chill playlist
 save this queue as workout mix
-create a new playlist called focus music
 add this track to my favorites
 ```
 
-But these don't work yet. Use the `mpc` commands directly.
+But these don't work yet. Use `mpc` commands directly.
+
+## AI model management
+
+**NEW in v0.2.0:** Switch between AI models on the fly without restarting.
+
+### List available models
+
+```
+show available models
+list models
+what models can I use
+show me the models
+which models are available
+list all models
+```
+
+Displays models available from your current AI provider (OpenRouter, Ollama, or Anthropic).
+
+### Switch models
+
+```
+use llama3.2
+switch to claude
+use gpt-4 model
+change to llama3.2
+switch model to anthropic/claude-3.5-sonnet
+use the mistral model
+```
+
+Changes the active AI model. The model name depends on your provider:
+
+- **Ollama**: `llama3.2`, `mistral`, `codellama`, etc.
+- **OpenRouter**: `anthropic/claude-3.5-sonnet`, `openai/gpt-4`, etc.
+- **Anthropic**: `claude-3-opus`, `claude-3-sonnet`, etc.
+
+Model persists for the session but resets when you restart Conductor.
+
+### Check current model
+
+```
+what model are we using
+which model is active
+show current model
+what's the current model
+which model am I using
+```
+
+Displays the currently active model name and provider.
+
+### Show provider
+
+```
+what provider are we using
+which AI provider is active
+show me the provider
+```
+
+Shows whether you're using Ollama, OpenRouter, or Anthropic.
+
+### Model info
+
+When you list models, you see:
+
+- Model ID (full identifier)
+- Display name
+- Description (if available)
+- Context length (max tokens)
+- Pricing (for cloud providers)
+
+This helps you pick the right model for your needs. Smaller models are faster, larger models understand better.
 
 ## Advanced commands
 

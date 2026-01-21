@@ -98,6 +98,35 @@ cp .env.example .env
   OLLAMA_BASE_URL=https://ollama.myserver.com # HTTPS endpoint
   ```
 
+### Model Selection *NEW in v0.2.0*
+
+#### `AI_MODEL`
+- **Type:** String
+- **Default:** Provider-dependent (varies by AI provider)
+- **Description:** AI model to use for natural language processing
+- **Examples:**
+  ```bash
+  # Ollama models (local)
+  AI_MODEL=llama3.2
+  AI_MODEL=mistral
+  AI_MODEL=codellama
+  
+  # OpenRouter models (cloud)
+  AI_MODEL=anthropic/claude-3.5-sonnet
+  AI_MODEL=openai/gpt-4-turbo
+  AI_MODEL=google/gemini-pro
+  
+  # Anthropic models (direct API)
+  AI_MODEL=claude-3-opus
+  AI_MODEL=claude-3-sonnet
+  ```
+- **Notes:**
+  - Model names are provider-specific
+  - For Ollama, use model names from `ollama list`
+  - For OpenRouter, use full model paths from their catalog
+  - Can be changed at runtime with natural language: "use llama3.2 model"
+  - See available models: "show available models"
+
 ### Model Selection
 
 #### `AI_MODEL`

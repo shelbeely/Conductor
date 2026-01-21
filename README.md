@@ -11,6 +11,18 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 - "skip to next track"
 - "show me the queue"
 - "set volume to 50"
+- "create a relaxing playlist" (NEW in 0.2.0)
+- "use llama3.2 model" (NEW in 0.2.0)
+
+**Smart Playlist Generation:** AI creates playlists based on mood, genre, activity, or energy level
+- Mood-based: "generate a chill playlist"
+- Activity-based: "make a workout playlist"
+- Genre-specific: "create a jazz playlist with 30 tracks"
+
+**Dynamic Model Selection:** Switch AI models on the fly
+- List available models from your provider
+- Change models without restarting
+- See current model and provider information
 
 **Terminal Interface:** Built with Ink (React for CLI)
 - Now Playing view with track metadata
