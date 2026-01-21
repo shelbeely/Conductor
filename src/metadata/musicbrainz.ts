@@ -191,7 +191,7 @@ export class MusicBrainzClient {
         country: release.country,
         barcode: release.barcode,
         status: release.status,
-        artistCredit: release['artist-credit']?.map((ac: any) => ({
+        artistCredit: release['artist-credit']?.map(ac => ({
           name: ac.name,
           artist: {
             id: ac.artist.id,

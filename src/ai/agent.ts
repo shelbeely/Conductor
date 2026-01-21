@@ -8,6 +8,12 @@
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
+// JSON Schema conversion options for OpenAPI compatibility
+const JSON_SCHEMA_OPTIONS = {
+  target: 'openApi3' as const,
+  $refStrategy: 'none' as const,
+};
+
 // Tool schemas for music operations
 export const SearchMusicSchema = z.object({
   query: z.string().describe('Search query for artist, album, or track'),
@@ -180,10 +186,7 @@ Be concise and friendly in your responses.`,
             function: {
               name: t.name,
               description: t.description,
-              parameters: zodToJsonSchema(t.schema, { 
-                target: 'openApi3',
-                $refStrategy: 'none'
-              }),
+              parameters: zodToJsonSchema(t.schema, JSON_SCHEMA_OPTIONS),
             },
           })),
         }),

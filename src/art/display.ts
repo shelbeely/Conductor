@@ -35,14 +35,18 @@ export class AlbumArtManager {
   }
 
   /**
-   * Check if Überzug++ is installed
+   * Check if Überzug++ is installed (POSIX-compliant check)
    */
   private async checkUeberzug(): Promise<boolean> {
     try {
-      const process = spawn('which', ['ueberzug']);
+      // Use 'command -v' for POSIX compliance
+      const process = spawn('sh', ['-c', 'command -v ueberzug']);
       return new Promise((resolve) => {
         process.on('close', (code) => {
           resolve(code === 0);
+        });
+        process.on('error', () => {
+          resolve(false);
         });
       });
     } catch {

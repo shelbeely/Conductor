@@ -45,7 +45,7 @@ function isTrackInfo(obj: unknown): obj is TrackInfo {
     typeof obj === 'object' &&
     obj !== null &&
     'file' in obj &&
-    typeof (obj as any).file === 'string'
+    typeof obj.file === 'string'
   );
 }
 
