@@ -21,7 +21,11 @@ Thank you for your interest in contributing to Conductor!
 
 ### React Best Practices
 
-This project follows the [Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) for UI components. Key guidelines:
+This project follows the [Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) for UI components. 
+
+**Custom Agent Available:** See `.github/agents/react-performance.md` for the project's custom GitHub Copilot agent profile.
+
+**Key guidelines:**
 
 - **Hoist helper functions** outside components to prevent re-creation on every render
 - **Use React.memo()** to prevent unnecessary re-renders for components with props
@@ -30,7 +34,7 @@ This project follows the [Vercel React Best Practices](https://github.com/vercel
 - **Use lazy initialization** for expensive initial state: `useState(() => computation())`
 - **Use functional setState** when state depends on previous value: `setState(prev => ...)`
 
-See `.github/copilot-instructions.md` for complete guidelines.
+Full reference available in `.github/skills/react-best-practices.md` and online in the [agent-skills repository](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices).
 
 ## Module Structure
 

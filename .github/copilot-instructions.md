@@ -4,6 +4,15 @@
 
 Conductor is a Linux-first TUI music player built with bun.js, TypeScript, and Ink that controls MPD (Music Player Daemon) with AI-powered natural language commands.
 
+## Custom Agent
+
+This project includes a custom GitHub Copilot agent for React performance optimization. See `.github/agents/react-performance.md` for the agent profile.
+
+**To use the custom agent:**
+- The agent is automatically available in supported environments (VS Code, GitHub.com, JetBrains, etc.)
+- The agent specializes in React/Ink performance optimization for this TUI project
+- Reference documentation is available in `.github/skills/react-best-practices.md`
+
 ## Development Guidelines
 
 ### React Best Practices
@@ -77,7 +86,10 @@ Before committing:
 
 ## Reference Documentation
 
-- **React Best Practices**: https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices
+- **Custom Agent**: `.github/agents/react-performance.md`
+- **React Best Practices (Full)**: `.github/skills/react-best-practices.md`
+- **React Best Practices (Online)**: https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices
 - **Project Architecture**: See `ARCHITECTURE.md`
 - **Setup Guide**: See `SETUP.md`
 - **Contributing**: See `CONTRIBUTING.md`
+
