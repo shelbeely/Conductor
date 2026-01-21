@@ -3,7 +3,7 @@
  * Natural language command interface
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Text, useInput } from 'ink';
 
 interface CommandInputProps {
@@ -12,46 +12,57 @@ interface CommandInputProps {
   isProcessing?: boolean;
 }
 
-export const CommandInput: React.FC<CommandInputProps> = ({
+export const CommandInput: React.FC<CommandInputProps> = React.memo(({
   onCommand,
   aiResponse,
   isProcessing = false,
 }) => {
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  // Use lazy state initialization for empty arrays
+  const [history, setHistory] = useState<string[]>(() => []);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  useInput((inputChar, key) => {
+  // Memoize the input handler to avoid recreating on every render
+  const handleInput = useCallback((inputChar: string, key: any) => {
     if (isProcessing) return;
 
     if (key.return) {
       if (input.trim()) {
         onCommand(input.trim());
-        setHistory([input.trim(), ...history]);
+        // Use functional setState to avoid closure issues
+        setHistory(prev => [input.trim(), ...prev]);
         setInput('');
         setHistoryIndex(-1);
       }
     } else if (key.backspace || key.delete) {
-      setInput(input.slice(0, -1));
+      setInput(prev => prev.slice(0, -1));
     } else if (key.upArrow) {
-      if (historyIndex < history.length - 1) {
-        const newIndex = historyIndex + 1;
-        setHistoryIndex(newIndex);
-        setInput(history[newIndex]);
-      }
+      setHistoryIndex(prev => {
+        if (prev < history.length - 1) {
+          const newIndex = prev + 1;
+          setInput(history[newIndex]);
+          return newIndex;
+        }
+        return prev;
+      });
     } else if (key.downArrow) {
-      if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
-        setHistoryIndex(newIndex);
-        setInput(history[newIndex]);
-      } else if (historyIndex === 0) {
-        setHistoryIndex(-1);
-        setInput('');
-      }
+      setHistoryIndex(prev => {
+        if (prev > 0) {
+          const newIndex = prev - 1;
+          setInput(history[newIndex]);
+          return newIndex;
+        } else if (prev === 0) {
+          setInput('');
+          return -1;
+        }
+        return prev;
+      });
     } else if (!key.ctrl && !key.meta) {
-      setInput(input + inputChar);
+      setInput(prev => prev + inputChar);
     }
-  });
+  }, [isProcessing, input, history, onCommand]);
+
+  useInput(handleInput);
 
   return (
     <Box flexDirection="column" padding={1} borderStyle="round" borderColor="green">
@@ -86,4 +97,4 @@ export const CommandInput: React.FC<CommandInputProps> = ({
       </Box>
     </Box>
   );
-};
+});

@@ -3,7 +3,7 @@
  * Displays and manages the playback queue
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box, Text } from 'ink';
 import type { TrackInfo } from '../mpd/client';
 
@@ -13,11 +13,29 @@ interface QueueProps {
   maxItems?: number;
 }
 
-export const Queue: React.FC<QueueProps> = ({
+// Hoist helper functions outside component to avoid re-creation
+const formatTrack = (track: TrackInfo): string => {
+  const title = track.title || 'Unknown';
+  const artist = track.artist || 'Unknown Artist';
+  return `${title} - ${artist}`;
+};
+
+const formatDuration = (seconds?: number): string => {
+  if (!seconds) return '';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+export const Queue: React.FC<QueueProps> = React.memo(({
   queue,
   currentPosition,
   maxItems = 10,
 }) => {
+  // Memoize derived state to avoid recalculating on every render
+  const displayQueue = useMemo(() => queue.slice(0, maxItems), [queue, maxItems]);
+  const hasMore = useMemo(() => queue.length > maxItems, [queue.length, maxItems]);
+
   if (queue.length === 0) {
     return (
       <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
@@ -28,22 +46,6 @@ export const Queue: React.FC<QueueProps> = ({
       </Box>
     );
   }
-
-  const displayQueue = queue.slice(0, maxItems);
-  const hasMore = queue.length > maxItems;
-
-  const formatTrack = (track: TrackInfo): string => {
-    const title = track.title || 'Unknown';
-    const artist = track.artist || 'Unknown Artist';
-    return `${title} - ${artist}`;
-  };
-
-  const formatDuration = (seconds?: number): string => {
-    if (!seconds) return '';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
@@ -86,4 +88,4 @@ export const Queue: React.FC<QueueProps> = ({
       )}
     </Box>
   );
-};
+});

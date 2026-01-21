@@ -15,7 +15,36 @@ interface NowPlayingProps {
   albumArtAscii?: string;
 }
 
-export const NowPlaying: React.FC<NowPlayingProps> = ({
+// Hoist helper functions outside component to avoid re-creation on every render
+const formatTime = (seconds?: number): string => {
+  if (!seconds) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const getStateSymbol = (state?: string): string => {
+  switch (state) {
+    case 'play':
+      return '▶';
+    case 'pause':
+      return '⏸';
+    case 'stop':
+      return '⏹';
+    default:
+      return '⏹';
+  }
+};
+
+const progressBar = (elapsed?: number, duration?: number): string => {
+  if (!elapsed || !duration) return '─'.repeat(40);
+  
+  const width = 40;
+  const progress = Math.floor((elapsed / duration) * width);
+  return '━'.repeat(progress) + '─'.repeat(width - progress);
+};
+
+export const NowPlaying: React.FC<NowPlayingProps> = React.memo(({
   track,
   status,
   showAlbumArt = false,
@@ -31,34 +60,6 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({
       </Box>
     );
   }
-
-  const formatTime = (seconds?: number): string => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getStateSymbol = (state?: string): string => {
-    switch (state) {
-      case 'play':
-        return '▶';
-      case 'pause':
-        return '⏸';
-      case 'stop':
-        return '⏹';
-      default:
-        return '⏹';
-    }
-  };
-
-  const progressBar = (elapsed?: number, duration?: number): string => {
-    if (!elapsed || !duration) return '─'.repeat(40);
-    
-    const width = 40;
-    const progress = Math.floor((elapsed / duration) * width);
-    return '━'.repeat(progress) + '─'.repeat(width - progress);
-  };
 
   return (
     <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan">
@@ -164,4 +165,4 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({
       )}
     </Box>
   );
-};
+});
