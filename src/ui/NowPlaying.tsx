@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import humanizeDuration from 'humanize-duration';
 import type { TrackInfo, PlayerStatus } from '../mpd/client';
 import type { EnrichedTrack } from '../metadata/musicbrainz';
 
@@ -22,15 +21,6 @@ const formatTime = (seconds?: number): string => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
-const formatHumanDuration = (seconds?: number): string => {
-  if (!seconds) return '';
-  return humanizeDuration(seconds * 1000, { 
-    largest: 2,
-    round: true,
-    units: ['h', 'm', 's']
-  });
 };
 
 const getStateSymbol = (state?: string): string => {
@@ -136,11 +126,6 @@ export const NowPlaying: React.FC<NowPlayingProps> = React.memo(({
                 <Text>
                   {formatTime(status.elapsed)} / {formatTime(status.duration)}
                 </Text>
-                {status.duration && status.duration > 60 && (
-                  <Text color="gray" dimColor>
-                    {' '}({formatHumanDuration(status.duration)})
-                  </Text>
-                )}
                 <Text color="gray">
                   {' '}Vol: {status.volume}%
                 </Text>
