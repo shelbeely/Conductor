@@ -1,37 +1,42 @@
-# Conductor 🎵
+# Conductor
 
-A Linux-first TUI music player built with **bun.js** and **Ink** that controls MPD (Music Player Daemon). Features AI-powered natural language commands via OpenRouter or local Ollama models.
+A Linux-first TUI music player built with bun.js and Ink that controls MPD (Music Player Daemon). Use natural language commands via OpenRouter or local Ollama models.
 
 ## Features
 
-- 🎵 **MPD Control**: Full playback control, queue management, and library browsing
-- 🤖 **AI-Powered Commands**: Natural language interface using OpenRouter or Ollama
-  - "play some jazz"
-  - "skip to next track"
-  - "show me the queue"
-  - "set volume to 50"
-- 🎨 **Rich TUI**: Beautiful terminal interface with Ink (React for CLI)
-  - Now Playing view with track metadata
-  - Queue viewer with navigation
-  - Audio visualizer
-  - Album art display (via Überzug++)
-- 🏷️ **Metadata Enrichment**: MusicBrainz integration for artist/album info
-- 🖼️ **Album Art**: Überzug++ support with ASCII art fallback
-- 🔧 **Modular Architecture**: Clean separation of concerns (MPD, AI, Metadata, UI)
+**MPD Control:** Full playback control, queue management, and library browsing
+
+**AI-Powered Commands:** Natural language interface using OpenRouter or Ollama
+- "play some jazz"
+- "skip to next track"
+- "show me the queue"
+- "set volume to 50"
+
+**Terminal Interface:** Built with Ink (React for CLI)
+- Now Playing view with track metadata
+- Queue viewer with navigation
+- Audio visualizer
+- Album art display (via Überzug++)
+
+**Metadata Enrichment:** MusicBrainz integration for artist/album info
+
+**Album Art:** Überzug++ support with ASCII art fallback
+
+**Modular Architecture:** Clean separation of concerns (MPD, AI, Metadata, UI)
 
 ## Prerequisites
 
 ### Required
 
-- **bun.js** >= 1.0.0 ([install](https://bun.sh))
-- **MPD** (Music Player Daemon) installed and running
+- bun.js >= 1.0.0 ([install](https://bun.sh))
+- MPD (Music Player Daemon) installed and running
 - Linux environment (primary target)
 
 ### Optional
 
-- **Überzug++** for album art display: `sudo apt install ueberzug` or build from source
-- **Ollama** for local AI models: [install guide](https://ollama.ai)
-- **OpenRouter API key** for remote AI models: [get key](https://openrouter.ai)
+- Überzug++ for album art display: `sudo apt install ueberzug` or build from source
+- Ollama for local AI models: [install guide](https://ollama.ai)
+- OpenRouter API key for remote AI models: [get key](https://openrouter.ai)
 
 ## Installation
 
@@ -134,7 +139,7 @@ bun run dev
 
 ### Natural Language Commands
 
-Conductor understands natural language! Just type what you want:
+Conductor understands natural language. Just type what you want:
 
 **Playback Control:**
 - "play" / "pause" / "stop"
@@ -198,12 +203,12 @@ src/
 
 | Feature | OpenRouter | Ollama | Anthropic |
 |---------|-----------|--------|-----------|
-| **Cost** | Pay per use | Free | Pay per use |
-| **Privacy** | Data sent to API | Fully local | Data sent to API |
-| **Setup** | API key needed | Install locally | API key needed |
-| **Speed** | Fast (cloud) | Depends on hardware | Fast (cloud) |
-| **Models** | Many options | Local models only | Claude only |
-| **Offline** | ❌ No | ✅ Yes | ❌ No |
+| Cost | Pay per use | Free | Pay per use |
+| Privacy | Data sent to API | Fully local | Data sent to API |
+| Setup | API key needed | Install locally | API key needed |
+| Speed | Fast (cloud) | Depends on hardware | Fast (cloud) |
+| Models | Many options | Local models only | Claude only |
+| Offline | No | Yes | No |
 
 ## Troubleshooting
 
@@ -271,11 +276,7 @@ Contributions welcome! Please open an issue or PR.
 ## Credits
 
 - Built with [bun.js](https://bun.sh)
-- UI powered by [Ink](https://github.com/vadimdemedes/ink)
+- UI with [Ink](https://github.com/vadimdemedes/ink)
 - MPD client: [mpc-js](https://github.com/cotko/mpd.js)
 - Metadata from [MusicBrainz](https://musicbrainz.org)
 - AI via [OpenRouter](https://openrouter.ai) or [Ollama](https://ollama.ai)
-
----
-
-Made with ♫ by the Conductor team

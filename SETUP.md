@@ -82,7 +82,7 @@ mpc update
 
 ### 4. Setup AI Provider
 
-#### Option A: Local with Ollama (Free, Private)
+#### Option A: Local with Ollama
 
 Install Ollama:
 ```bash
@@ -110,7 +110,7 @@ cp .env.example .env
 # AI_MODEL=llama3.2
 ```
 
-#### Option B: Remote with OpenRouter (Paid, More Powerful)
+#### Option B: Remote with OpenRouter
 
 1. Get API key from https://openrouter.ai
 2. Configure Conductor:
@@ -271,5 +271,3 @@ Once everything is set up:
    - "set volume to 75"
 3. Use arrow keys to navigate history
 4. Press Ctrl+C to quit
-
-Enjoy your AI-powered music player! 🎵

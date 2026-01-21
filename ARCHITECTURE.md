@@ -1,14 +1,14 @@
-# Architecture Documentation
+# Architecture documentation
 
 ## Overview
 
-Conductor is a modular TUI music player built with a clean separation of concerns. The architecture is designed to be maintainable, testable, and extensible.
+Conductor is a modular TUI music player. Each module handles a specific responsibility: MPD communication, AI command processing, metadata fetching, album art display, and UI rendering.
 
-## Core Modules
+## Core modules
 
-### 1. MPD Client (`src/mpd/client.ts`)
+### 1. MPD client (`src/mpd/client.ts`)
 
-**Purpose**: Manages communication with Music Player Daemon
+**Purpose**: Communicates with Music Player Daemon
 
 **Responsibilities**:
 - TCP connection to MPD server
@@ -18,18 +18,18 @@ Conductor is a modular TUI music player built with a clean separation of concern
 - Music library search
 - Automatic reconnection on disconnect
 
-**Key Classes**:
+**Key classes**:
 - `MPDClient`: Main client class
 - Uses `mpc-js` library for protocol implementation
 
-**Design Patterns**:
+**Design patterns**:
 - Singleton-like pattern (one client per app instance)
 - Observer pattern (event listeners for disconnection)
 - Null object pattern (returns null/empty arrays on failure)
 
-### 2. AI Agent (`src/ai/agent.ts`)
+### 2. AI agent (`src/ai/agent.ts`)
 
-**Purpose**: Handles natural language command processing
+**Purpose**: Processes natural language commands
 
 **Responsibilities**:
 - Parse natural language commands
@@ -37,19 +37,19 @@ Conductor is a modular TUI music player built with a clean separation of concern
 - Manage conversation context
 - Support multiple AI providers
 
-**Key Classes**:
+**Key classes**:
 - `AIAgent`: Main coordinator
 - `AIProvider`: Abstract base class for providers
 - `OpenRouterProvider`: Remote AI via OpenRouter API
 - `OllamaProvider`: Local AI via Ollama
 - `AnthropicProvider`: Remote AI via Anthropic API (partial)
 
-**Design Patterns**:
+**Design patterns**:
 - Strategy pattern (swappable AI providers)
 - Factory pattern (provider instantiation)
 - Command pattern (tool calls)
 
-**Tool Schema**:
+**Tool schema**:
 Uses Zod for runtime type validation of tool parameters:
 - `search_music`: Search library
 - `play_music`: Start playback
@@ -60,9 +60,9 @@ Uses Zod for runtime type validation of tool parameters:
 - `get_queue`: View queue
 - `clear_queue`: Clear queue
 
-### 3. Metadata Module (`src/metadata/musicbrainz.ts`)
+### 3. Metadata module (`src/metadata/musicbrainz.ts`)
 
-**Purpose**: Enriches track information with online metadata
+**Purpose**: Fetches additional track information from MusicBrainz
 
 **Responsibilities**:
 - Search MusicBrainz for artist/album info
@@ -70,16 +70,16 @@ Uses Zod for runtime type validation of tool parameters:
 - Cache metadata to reduce API calls
 - Rate limiting (1 req/sec per MusicBrainz guidelines)
 
-**Key Classes**:
+**Key classes**:
 - `MusicBrainzClient`: API client
 - In-memory caching with Map
 
-**Design Patterns**:
+**Design patterns**:
 - Repository pattern (data access abstraction)
 - Cache-aside pattern
 - Rate limiting pattern
 
-### 4. Album Art Module (`src/art/display.ts`)
+### 4. Album art module (`src/art/display.ts`)
 
 **Purpose**: Displays album artwork in terminal
 
@@ -90,14 +90,14 @@ Uses Zod for runtime type validation of tool parameters:
 - Generate ASCII art fallback
 - Clean up temporary files
 
-**Key Classes**:
+**Key classes**:
 - `AlbumArtManager`: Main coordinator
 
-**Design Patterns**:
+**Design patterns**:
 - Adapter pattern (Überzug++ process communication)
 - Fallback pattern (ASCII art when Überzug++ unavailable)
 
-### 5. UI Components (`src/ui/`)
+### 5. UI components (`src/ui/`)
 
 **Purpose**: Terminal user interface using React/Ink
 
@@ -107,14 +107,14 @@ Uses Zod for runtime type validation of tool parameters:
 - `Visualizer`: Animated audio visualizer
 - `CommandInput`: Natural language input with history
 
-**Design Patterns**:
+**Design patterns**:
 - Component pattern (React)
 - Observer pattern (useEffect for updates)
 - Controlled components (input state)
 
-### 6. Main App (`src/App.tsx`)
+### 6. Main app (`src/App.tsx`)
 
-**Purpose**: Orchestrates all modules
+**Purpose**: Connects all modules
 
 **Responsibilities**:
 - Initialize all modules
@@ -123,7 +123,7 @@ Uses Zod for runtime type validation of tool parameters:
 - Update UI state
 - Error handling
 
-**Data Flow**:
+**Data flow**:
 ```
 User Input (CommandInput)
   ↓
@@ -146,9 +146,9 @@ Environment-based configuration:
 - `OPENROUTER_API_KEY`, `AI_MODEL`: Remote AI config
 - `OLLAMA_BASE_URL`: Local AI config
 
-## State Management
+## State management
 
-**React State in App.tsx**:
+**React state in App.tsx**:
 - `connected`: MPD connection status
 - `currentTrack`: Currently playing track (enriched)
 - `status`: Player status (state, volume, etc.)
@@ -158,55 +158,55 @@ Environment-based configuration:
 - `albumArtAscii`: ASCII art for fallback
 - `error`: Error messages
 
-**Update Loop**:
+**Update loop**:
 - Poll MPD every 1 second for status updates
 - Enrich new tracks with MusicBrainz metadata
 - Update album art when track changes
 
-## Error Handling
+## Error handling
 
-**Graceful Degradation**:
+**Graceful degradation**:
 - MPD disconnected: Show error, retry connection
 - AI unavailable: Show error message
 - Metadata unavailable: Continue without enrichment
 - Überzug++ missing: Fall back to ASCII art
 
-**Error Boundaries**:
+**Error boundaries**:
 - Try-catch around all async operations
 - Log errors to console
 - Show user-friendly error messages in UI
 
-## Extension Points
+## Extension points
 
-**Adding New AI Providers**:
+**Adding new AI providers**:
 1. Extend `AIProvider` class
 2. Implement `processCommand()` method
 3. Add to `AIAgent` factory
 
-**Adding New Tools**:
+**Adding new tools**:
 1. Define Zod schema in `agent.ts`
 2. Add to `tools` array
 3. Implement handler in `App.tsx`
 
-**Adding New UI Components**:
+**Adding new UI components**:
 1. Create component in `src/ui/`
 2. Import in `App.tsx`
 3. Add to render tree
 
-**Adding New Metadata Sources**:
+**Adding new metadata sources**:
 1. Create client class like `MusicBrainzClient`
 2. Call in `updatePlayerState()` enrichment flow
 
-## Performance Considerations
+## Performance considerations
 
-**Optimization Strategies**:
+**Optimization strategies**:
 - Metadata caching to reduce API calls
 - Rate limiting for external APIs
 - Polling interval (1s) balances freshness vs. overhead
 - Lazy loading of album art
 - Async/await for non-blocking operations
 
-**Potential Improvements**:
+**Potential improvements**:
 - Implement proper event-based MPD updates (idle mode)
 - Use React.memo for expensive components
 - Implement virtual scrolling for long queues
@@ -220,11 +220,11 @@ Environment-based configuration:
 - Input sanitization for search queries
 - Temp file cleanup to prevent disk filling
 
-## Testing Strategy
+## Testing strategy
 
-**Current State**: Manual testing
+**Current state**: Manual testing
 
-**Future Improvements**:
+**Future improvements**:
 - Unit tests for MPD client methods
 - Mock AI providers for deterministic testing
 - Integration tests with test MPD instance
@@ -233,20 +233,20 @@ Environment-based configuration:
 
 ## Deployment
 
-**Build Process**:
+**Build process**:
 1. TypeScript compilation to JavaScript
 2. No bundling (uses Node.js module resolution)
 3. Executable flag on entry point
 
-**Runtime Requirements**:
+**Runtime requirements**:
 - bun.js >= 1.0.0 or Node.js >= 18.0.0
 - MPD running and accessible
 - Optional: Ollama for local AI
 - Optional: Überzug++ for album art
 
-## Future Architecture Considerations
+## Future architecture considerations
 
-**Potential Enhancements**:
+**Potential enhancements**:
 - Plugin system for extensibility
 - WebSocket API for remote control
 - Database for persistent metadata cache
