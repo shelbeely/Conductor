@@ -119,6 +119,60 @@ export class TTSManager {
   }
 
   /**
+   * Generate dialogue-style speech (for podcast/radio host format)
+   */
+  async generateDialogue(dialogue: Array<{ speaker: string; text: string }>, cacheKey?: string): Promise<TTSResult[]> {
+    if (!this.config.enabled || !this.provider) {
+      return [];
+    }
+
+    // Check if provider supports dialogue (OpenAI does)
+    if (this.provider instanceof OpenAITTS) {
+      const results = await (this.provider as any).synthesizeDialogue(dialogue);
+      
+      // Cache results if key provided
+      if (cacheKey) {
+        for (let i = 0; i < results.length; i++) {
+          if (results[i].success && results[i].audio) {
+            const lineKey = `${cacheKey}_line_${i}`;
+            this.cacheAudio(lineKey, results[i].audio!.filepath);
+          }
+        }
+      }
+      
+      return results;
+    } else {
+      // Fallback: generate each line separately
+      const results: TTSResult[] = [];
+      for (let i = 0; i < dialogue.length; i++) {
+        const line = dialogue[i];
+        const lineKey = cacheKey ? `${cacheKey}_line_${i}` : undefined;
+        const result = await this.generateSpeech(line.text, lineKey);
+        results.push(result);
+      }
+      return results;
+    }
+  }
+
+  /**
+   * Queue dialogue for playback
+   */
+  async queueDialogue(dialogue: Array<{ speaker: string; text: string }>, cacheKey?: string): Promise<void> {
+    const results = await this.generateDialogue(dialogue, cacheKey);
+    
+    for (const result of results) {
+      if (result.success && result.audio) {
+        this.audioQueue.push(result.audio.filepath);
+      }
+    }
+
+    // Start playback if not already playing
+    if (!this.isPlaying) {
+      this.playNext();
+    }
+  }
+
+  /**
    * Queue long text for playback
    */
   async queueLongSpeech(text: string, cacheKey?: string): Promise<void> {

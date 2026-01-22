@@ -501,21 +501,29 @@ export const App: React.FC<AppProps> = ({
       setAiResponse(`Fetching story for "${track}" by ${artist}...`);
       setShowTrackStory(true);
 
-      // Use AI to generate rich contextual information
-      const prompt = `Provide detailed information about the song "${track}" by ${artist}. Include:
+      // Generate dialogue-style content for radio host/podcast format
+      const prompt = `You are creating a script for two radio hosts (Host 1 and Host 2) discussing the song "${track}" by ${artist}. 
+      
+Write a natural, engaging conversation between them. Format it as:
 
-${args.aspectFocus === 'meaning' ? '- Focus primarily on the song\'s meaning, themes, and lyrics interpretation' : ''}
-${args.aspectFocus === 'production' ? '- Focus primarily on production details, recording techniques, and musical composition' : ''}
-${args.aspectFocus === 'history' ? '- Focus primarily on the song\'s creation history and artist background' : ''}
-${args.aspectFocus === 'cultural-impact' ? '- Focus primarily on cultural impact, chart performance, and legacy' : ''}
-${!args.aspectFocus || args.aspectFocus === 'all' ? `
-1. Song Meaning & Themes: What the song is about, lyrical themes, emotional content
-2. Production & Recording: Recording location, producer, musical techniques, interesting instruments
-3. Artist Context: What was happening in the artist's life, influences, related works
-4. Cultural Impact: Chart performance, awards, covers, influence on other artists
-5. Interesting Facts: Behind-the-scenes stories, anecdotes, trivia` : ''}
+Host 1: [their line]
+Host 2: [their line]
+Host 1: [their line]
+...and so on.
 
-Keep it engaging and informative. If you don't know specific details, provide general context about the artist and era instead.`;
+Make it sound like a real podcast or radio show discussion. Include:
+- Natural back-and-forth banter
+- Each host building on what the other says
+- Occasional humor or personal reactions
+- Interesting facts about the song, production, and artist
+- Cultural impact and legacy
+- Behind-the-scenes stories
+
+Keep each line conversational (1-3 sentences max). Aim for 8-12 exchanges total. Make it engaging and informative but not overly formal.
+
+Example format:
+Host 1: So we're listening to "${track}" by ${artist}. What a track!
+Host 2: Absolutely! I remember when this first came out...`;
 
       const response = await aiAgent.processCommand(prompt);
       const story = response.message || 'No information available';
@@ -523,20 +531,29 @@ Keep it engaging and informative. If you don't know specific details, provide ge
       setTrackStory(story);
       setAiResponse(`Story loaded for "${track}"`);
 
-      // Pre-generate TTS audio if enabled
+      // Pre-generate TTS audio if enabled - use dialogue format
       if (ttsManager.isAvailable()) {
         setIsGeneratingTTS(true);
-        setTtsProgress('Generating audio narration...');
+        setTtsProgress('Generating podcast-style narration...');
         
         try {
           // Create cache key from track and artist
           const cacheKey = `${artist}-${track}`.replace(/[^a-z0-9]/gi, '_').toLowerCase();
           
-          // Generate audio in chunks
-          await ttsManager.queueLongSpeech(story, cacheKey);
+          // Parse dialogue format
+          const dialogue = parseDialogue(story);
           
-          setTtsProgress('Audio ready - narration will play automatically');
-          setAiResponse(`Story and narration ready for "${track}"`);
+          if (dialogue.length > 0) {
+            // Generate dialogue with alternating voices
+            await ttsManager.queueDialogue(dialogue, cacheKey);
+            setTtsProgress('Audio ready - podcast narration will play automatically');
+            setAiResponse(`Podcast discussion ready for "${track}"`);
+          } else {
+            // Fallback to regular speech if parsing fails
+            await ttsManager.queueLongSpeech(story, cacheKey);
+            setTtsProgress('Audio ready - narration will play automatically');
+            setAiResponse(`Story and narration ready for "${track}"`);
+          }
         } catch (err) {
           setTtsProgress(`TTS generation failed: ${err}`);
           console.error('TTS generation error:', err);
@@ -549,6 +566,25 @@ Keep it engaging and informative. If you don't know specific details, provide ge
       setShowTrackStory(false);
       setIsGeneratingTTS(false);
     }
+  };
+
+  // Helper function to parse dialogue format
+  const parseDialogue = (text: string): Array<{ speaker: string; text: string }> => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const dialogue: Array<{ speaker: string; text: string }> = [];
+
+    for (const line of lines) {
+      // Match format: "Host 1: text" or "Host 2: text"
+      const match = line.match(/^(Host [12]):\s*(.+)$/i);
+      if (match) {
+        dialogue.push({
+          speaker: match[1],
+          text: match[2].trim(),
+        });
+      }
+    }
+
+    return dialogue;
   };
 
   // Render

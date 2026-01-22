@@ -24,8 +24,10 @@ export class OpenAITTS {
     }
   }
 
-  async synthesize(text: string): Promise<TTSResult> {
+  async synthesize(text: string, voice?: string): Promise<TTSResult> {
     try {
+      const selectedVoice = voice || this.voice;
+      
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
@@ -34,7 +36,7 @@ export class OpenAITTS {
         },
         body: JSON.stringify({
           model: 'tts-1',
-          voice: this.voice,
+          voice: selectedVoice,
           input: text,
           speed: this.speed,
         }),
@@ -66,4 +68,24 @@ export class OpenAITTS {
       };
     }
   }
-}
+
+  async synthesizeDialogue(lines: Array<{ speaker: string; text: string }>): Promise<TTSResult[]> {
+    // Map speakers to voices: Host 1 and Host 2
+    const voiceMap: Record<string, string> = {
+      'Host 1': 'echo',  // Male voice
+      'Host 2': 'shimmer',  // Female voice
+    };
+
+    const results: TTSResult[] = [];
+
+    for (const line of lines) {
+      const voice = voiceMap[line.speaker] || 'alloy';
+      const result = await this.synthesize(line.text, voice);
+      results.push(result);
+      
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    return results;
+  }

@@ -5,10 +5,21 @@ This document covers recommended TTS solutions for adding voice features to Cond
 ## Use cases for TTS in Conductor
 
 1. **Voice announcements** - Announce track changes, playlist updates, queue status
-2. **Track story narration** - Read "Beyond the Beat" stories aloud while music plays
+2. **Track story narration (Beyond the Beat)** - Podcast-style discussions with two AI hosts about tracks
 3. **Command feedback** - Spoken confirmation of user commands
 4. **Accessibility** - Full voice-driven interface for visually impaired users
 5. **Ambient mode** - Background narration about the music you're listening to
+
+## Beyond the Beat: Podcast-Style Feature
+
+**NEW:** The "Beyond the Beat" feature now generates conversations between two radio hosts or podcasters discussing tracks. This creates a natural, engaging experience similar to listening to a music podcast.
+
+**How it works:**
+- AI generates a dialogue script between "Host 1" (male voice - Echo) and "Host 2" (female voice - Shimmer)
+- Natural back-and-forth conversation about the song's meaning, production, history, and impact
+- Each line is synthesized with the appropriate voice
+- Audio is pre-generated and cached before playback starts
+- Seamless transitions between speakers create an authentic podcast experience
 
 ## Recommended solutions
 
