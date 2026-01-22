@@ -13,6 +13,7 @@ import { NowPlaying } from './ui/NowPlaying';
 import { Queue } from './ui/Queue';
 import { Visualizer } from './ui/Visualizer';
 import { CommandInput } from './ui/CommandInput';
+import { TrackStory } from './ui/TrackStory';
 
 interface AppProps {
   mpdHost?: string;
@@ -57,6 +58,8 @@ export const App: React.FC<AppProps> = ({
   const [error, setError] = useState<string>('');
   const [currentModel, setCurrentModel] = useState<string>('');
   const [showModelSelector, setShowModelSelector] = useState(false);
+  const [trackStory, setTrackStory] = useState<string>('');
+  const [showTrackStory, setShowTrackStory] = useState(false);
 
   // Initialize
   useEffect(() => {
@@ -162,6 +165,24 @@ export const App: React.FC<AppProps> = ({
         }
       }
 
+      // Handle "beyond the beat" / track story requests
+      if (command.toLowerCase().includes('beyond the beat') || 
+          command.toLowerCase().includes('track story') ||
+          command.toLowerCase().includes('tell me about this song') ||
+          command.toLowerCase().includes('song meaning')) {
+        await handleGetTrackStory({});
+        setIsProcessing(false);
+        return;
+      }
+
+      if (command.toLowerCase().includes('close story') || 
+          command.toLowerCase().includes('hide story')) {
+        setShowTrackStory(false);
+        setAiResponse('Track story closed');
+        setIsProcessing(false);
+        return;
+      }
+
       const response = await aiAgent.processCommand(command);
       setAiResponse(response.message || 'Command processed');
 
@@ -212,6 +233,9 @@ export const App: React.FC<AppProps> = ({
             break;
           case 'generate_playlist':
             await handleGeneratePlaylist(call.arguments);
+            break;
+          case 'get_track_story':
+            await handleGetTrackStory(call.arguments);
             break;
         }
       } catch (err) {
@@ -445,6 +469,46 @@ export const App: React.FC<AppProps> = ({
     setShowModelSelector(!showModelSelector);
   };
 
+  const handleGetTrackStory = async (args: any) => {
+    try {
+      const track = args.track || currentTrack?.title || '';
+      const artist = args.artist || currentTrack?.artist || currentTrack?.albumArtist || '';
+      
+      if (!track || !artist) {
+        setAiResponse('No track currently playing');
+        return;
+      }
+
+      setAiResponse(`Fetching story for "${track}" by ${artist}...`);
+      setShowTrackStory(true);
+
+      // Use AI to generate rich contextual information
+      const prompt = `Provide detailed information about the song "${track}" by ${artist}. Include:
+
+${args.aspectFocus === 'meaning' ? '- Focus primarily on the song\'s meaning, themes, and lyrics interpretation' : ''}
+${args.aspectFocus === 'production' ? '- Focus primarily on production details, recording techniques, and musical composition' : ''}
+${args.aspectFocus === 'history' ? '- Focus primarily on the song\'s creation history and artist background' : ''}
+${args.aspectFocus === 'cultural-impact' ? '- Focus primarily on cultural impact, chart performance, and legacy' : ''}
+${!args.aspectFocus || args.aspectFocus === 'all' ? `
+1. Song Meaning & Themes: What the song is about, lyrical themes, emotional content
+2. Production & Recording: Recording location, producer, musical techniques, interesting instruments
+3. Artist Context: What was happening in the artist's life, influences, related works
+4. Cultural Impact: Chart performance, awards, covers, influence on other artists
+5. Interesting Facts: Behind-the-scenes stories, anecdotes, trivia` : ''}
+
+Keep it engaging and informative. If you don't know specific details, provide general context about the artist and era instead.`;
+
+      const response = await aiAgent.processCommand(prompt);
+      const story = response.message || 'No information available';
+      
+      setTrackStory(story);
+      setAiResponse(`Story loaded for "${track}"`);
+    } catch (err) {
+      setAiResponse(`Failed to fetch track story: ${err}`);
+      setShowTrackStory(false);
+    }
+  };
+
   // Render
   if (error) {
     return (
@@ -492,6 +556,15 @@ export const App: React.FC<AppProps> = ({
         </Box>
       </Box>
 
+      {showTrackStory && (
+        <TrackStory 
+          story={trackStory}
+          trackTitle={currentTrack?.title}
+          artist={currentTrack?.artist || currentTrack?.albumArtist}
+          onClose={() => setShowTrackStory(false)}
+        />
+      )}
+
       <CommandInput
         onCommand={handleCommand}
         aiResponse={aiResponse}
@@ -500,7 +573,7 @@ export const App: React.FC<AppProps> = ({
       
       <Box marginTop={1}>
         <Text color="gray" dimColor>
-          Commands: "generate a workout playlist", "list models", "switch to [model]" | Ctrl+C to quit
+          Commands: "beyond the beat", "generate a workout playlist", "list models" | Ctrl+C to quit
         </Text>
       </Box>
     </Box>

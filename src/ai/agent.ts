@@ -56,6 +56,13 @@ export const GeneratePlaylistSchema = z.object({
   shuffleResults: z.boolean().optional().describe('Shuffle the generated playlist'),
 });
 
+export const GetTrackStorySchema = z.object({
+  track: z.string().optional().describe('Track title (defaults to current track)'),
+  artist: z.string().optional().describe('Artist name (defaults to current artist)'),
+  aspectFocus: z.enum(['all', 'meaning', 'production', 'history', 'cultural-impact']).optional()
+    .describe('Focus on specific aspect of the story'),
+});
+
 // Tool definitions
 export const tools = [
   {
@@ -102,6 +109,11 @@ export const tools = [
     name: 'generate_playlist',
     description: 'Generate an AI-powered playlist based on mood, genre, energy level, theme, or activity. Examples: "upbeat workout music", "relaxing jazz", "90s nostalgia", "focus music"',
     schema: GeneratePlaylistSchema,
+  },
+  {
+    name: 'get_track_story',
+    description: 'Get the story behind a track - song meaning, production details, artist background, cultural impact. Like YouTube\'s Beyond the Beat feature.',
+    schema: GetTrackStorySchema,
   },
 ];
 
