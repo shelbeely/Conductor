@@ -4,16 +4,18 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Box, Text, useApp } from 'ink';
+import { Box, Text, useApp, useInput } from 'ink';
 import { MPDClient, type TrackInfo, type PlayerStatus } from './mpd/client';
 import { AIAgent, type AIProviderConfig, type ToolCall } from './ai/agent';
 import { MusicBrainzClient, type EnrichedTrack } from './metadata/musicbrainz';
 import { AlbumArtManager } from './art/display';
+import { LRCLibClient, type LyricsData } from './lyrics/lrclib';
 import { NowPlaying } from './ui/NowPlaying';
 import { Queue } from './ui/Queue';
 import { Visualizer } from './ui/Visualizer';
 import { CommandInput } from './ui/CommandInput';
 import { TrackStory } from './ui/TrackStory';
+import { Lyrics } from './ui/Lyrics';
 import { TTSManager } from './tts/manager';
 import type { TTSConfig } from './tts/types';
 
@@ -52,6 +54,7 @@ export const App: React.FC<AppProps> = ({
     return new AIAgent(config);
   });
   const [mbClient] = useState(() => new MusicBrainzClient());
+  const [lyricsClient] = useState(() => new LRCLibClient());
   const [artManager] = useState(() => new AlbumArtManager());
   const [ttsManager] = useState(() => {
     const ttsConfig: TTSConfig = {
@@ -84,6 +87,10 @@ export const App: React.FC<AppProps> = ({
   const [tracksSinceLastDj, setTracksSinceLastDj] = useState(0);
   const [djIntroduced, setDjIntroduced] = useState(false);
   const [lastDjTrack, setLastDjTrack] = useState<string>('');
+  
+  // Lyrics feature state
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [currentLyrics, setCurrentLyrics] = useState<LyricsData | null>(null);
 
   // Initialize
   useEffect(() => {
@@ -141,6 +148,19 @@ export const App: React.FC<AppProps> = ({
         // Enrich track with metadata
         const enriched = await mbClient.enrichTrack(newTrack);
         setCurrentTrack(enriched);
+
+        // Fetch lyrics for the new track
+        if (enriched.title && enriched.artist) {
+          const lyrics = await lyricsClient.getLyrics(
+            enriched.title,
+            enriched.artist,
+            enriched.album,
+            enriched.duration
+          );
+          setCurrentLyrics(lyrics);
+        } else {
+          setCurrentLyrics(null);
+        }
 
         // Increment track counter for AI DJ
         setTracksSinceLastDj(prev => prev + 1);
@@ -235,6 +255,24 @@ export const App: React.FC<AppProps> = ({
         setAiDjEnabled(false);
         ttsManager.clearQueue(); // Clear any pending DJ commentary
         setAiResponse('AI DJ hosts disabled');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Handle lyrics commands
+      if (command.toLowerCase().includes('show lyrics') || 
+          command.toLowerCase().includes('display lyrics') ||
+          command.toLowerCase().includes('lyrics')) {
+        setShowLyrics(true);
+        setAiResponse(currentLyrics ? 'Showing lyrics' : 'No lyrics available for this track');
+        setIsProcessing(false);
+        return;
+      }
+
+      if (command.toLowerCase().includes('hide lyrics') || 
+          command.toLowerCase().includes('close lyrics')) {
+        setShowLyrics(false);
+        setAiResponse('Lyrics hidden');
         setIsProcessing(false);
         return;
       }
@@ -709,6 +747,14 @@ Host 2: Yeah, the whole band was exhausted but it just worked.`;
     }
   };
 
+  // Keyboard shortcuts
+  useInput((input, key) => {
+    // Toggle lyrics with L key
+    if (input.toLowerCase() === 'l' && !showTrackStory) {
+      setShowLyrics(!showLyrics);
+    }
+  });
+
   // Render
   if (error) {
     return (
@@ -770,6 +816,24 @@ Host 2: Yeah, the whole band was exhausted but it just worked.`;
         />
       )}
 
+      {showLyrics && (
+        <Lyrics
+          lyrics={currentLyrics}
+          currentTime={status?.elapsed || 0}
+          currentLine={
+            currentLyrics
+              ? lyricsClient.getCurrentLine(currentLyrics, status?.elapsed || 0)
+              : null
+          }
+          upcomingLines={
+            currentLyrics
+              ? lyricsClient.getUpcomingLines(currentLyrics, status?.elapsed || 0, 3)
+              : []
+          }
+          onClose={() => setShowLyrics(false)}
+        />
+      )}
+
       <CommandInput
         onCommand={handleCommand}
         aiResponse={aiResponse}
@@ -778,10 +842,14 @@ Host 2: Yeah, the whole band was exhausted but it just worked.`;
       
       <Box marginTop={1}>
         <Text color="gray" dimColor>
-          Commands: "beyond the beat", "generate a workout playlist", {aiDjEnabled ? '"disable dj"' : '"enable dj"'} | Ctrl+C to quit
+          Commands: "beyond the beat", "show lyrics", {aiDjEnabled ? '"disable dj"' : '"enable dj"'} | Press L for lyrics | Ctrl+C to quit
         </Text>
         {aiDjEnabled && ttsManager.isAvailable() && (
           <Text color="green" dimColor>
+            🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
+          </Text>
+        )}
+      </Box>
             🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
           </Text>
         )}
