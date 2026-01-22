@@ -538,29 +538,38 @@ export const App: React.FC<AppProps> = ({
       setAiResponse(`Fetching story for "${track}" by ${artist}...`);
       setShowTrackStory(true);
 
-      // Generate dialogue-style content for radio host/podcast format
+      // Generate dialogue-style content for radio host/podcast format with humanizer principles
       const prompt = `You are creating a script for two radio hosts (Host 1 and Host 2) discussing the song "${track}" by ${artist}. 
-      
-Write a natural, engaging conversation between them. Format it as:
+
+IMPORTANT - Write naturally and avoid AI writing patterns:
+- NO inflated language ("pivotal moment," "testament to," "stands as," "showcases")
+- NO promotional words ("vibrant," "stunning," "groundbreaking," "renowned")
+- NO vague attributions ("experts say," "observers note") - use specific sources if you mention them
+- NO superficial -ing phrases ("symbolizing," "highlighting," "showcasing")
+- Skip phrases like "cultural impact" or "legacy" unless you have something specific to say
+- Vary sentence length - mix short and long
+- Use "I" when it fits the conversational tone
+- Real reactions, not just neutral reporting
+
+Write a natural conversation. Format:
 
 Host 1: [their line]
 Host 2: [their line]
-Host 1: [their line]
-...and so on.
 
-Make it sound like a real podcast or radio show discussion. Include:
-- Natural back-and-forth banter
-- Each host building on what the other says
-- Occasional humor or personal reactions
-- Interesting facts about the song, production, and artist
-- Cultural impact and legacy
-- Behind-the-scenes stories
+Include:
+- Natural banter and building on each other
+- Occasional humor or genuine reactions
+- Specific facts about the song/production/artist (no vague claims)
+- Personal takes when appropriate
+- Mix of short punchy lines and longer thoughts
 
-Keep each line conversational (1-3 sentences max). Aim for 8-12 exchanges total. Make it engaging and informative but not overly formal.
+Keep each line 1-3 sentences. Aim for 8-12 exchanges. Be engaging but don't oversell anything.
 
-Example format:
-Host 1: So we're listening to "${track}" by ${artist}. What a track!
-Host 2: Absolutely! I remember when this first came out...`;
+Example of good style:
+Host 1: So "${track}" by ${artist}. This one gets me every time.
+Host 2: The guitar tone on this - I read Brian May built his guitar from fireplace wood. 
+Host 1: Wait, seriously?
+Host 2: Yeah. Called it the Red Special. Used it on every Queen album.`;
 
       const response = await aiAgent.processCommand(prompt);
       const story = response.message || 'No information available';
@@ -631,16 +640,25 @@ Host 2: Absolutely! I remember when this first came out...`;
       const title = track.title || 'Unknown Track';
       const album = track.album || '';
 
-      // Generate short, punchy DJ commentary
+      // Generate short, punchy DJ commentary with humanizer principles
       const introText = !djIntroduced 
         ? `This is your first time hearing from us! We're AI-generated hosts - think of us as your knowledgeable friends hanging out with you. We'll pop in every few songs to share some fun facts. Fair warning: we're AI, so we might get things wrong sometimes! But we'll do our best to keep it interesting.
 
 ` 
         : '';
 
-      const prompt = `You are creating a SHORT radio DJ commentary (30-60 seconds when spoken) between two AI co-hosts about the song that just started playing: "${title}" by ${artist}${album ? ` from the album ${album}` : ''}.
+      const prompt = `You are creating a SHORT radio DJ commentary (30-60 seconds when spoken) between two AI co-hosts about the song that just started playing: "${title}" by ${artist}${album ? ` from ${album}` : ''}.
 
-${introText}Format as a quick back-and-forth:
+${introText}CRITICAL - Avoid AI writing patterns:
+- NO inflated importance ("pivotal," "testament to," "underscores," "stands as")
+- NO promotional language ("stunning," "vibrant," "renowned," "breathtaking")
+- NO vague claims ("experts believe," "many consider")
+- NO superficial -ing phrases ("showcasing," "highlighting," "symbolizing")
+- Skip empty phrases about "legacy" or "impact" unless you have something real to say
+- Vary sentence length - short and long
+- Sound like actual people talking
+
+Format as quick back-and-forth:
 
 Host 1: [1-2 sentences]
 Host 2: [1-2 sentences]
@@ -648,17 +666,17 @@ Host 1: [1-2 sentences]
 Host 2: [1 sentence closing]
 
 Keep it:
-- Conversational and fun ("radio DJ energy")
+- Conversational and fun (radio DJ energy, not Wikipedia)
 - Short and punchy (4-6 exchanges max)
-- Include ONE interesting fact (artist backstory, production trivia, cultural context, or "did you know?")
-- Natural reactions ("Oh man, this track!", "I love this part")
+- Include ONE specific fact (production detail, artist story, or surprising trivia)
+- Natural reactions ("Oh man, this track!" or "I didn't know that")
 - Self-aware that you're AI if first time
 
-Example style:
+Example good style:
 Host 1: Alright, here comes "${title}" by ${artist}!
-Host 2: Oh this is a good one. Did you know...
+Host 2: Fun fact - they recorded this in one take at 3am.
 Host 1: No way, really?
-Host 2: Yep! And that's why...`;
+Host 2: Yeah, the whole band was exhausted but it just worked.`;
 
       const response = await aiAgent.processCommand(prompt);
       const commentary = response.message || '';
