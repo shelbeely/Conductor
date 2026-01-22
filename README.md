@@ -47,7 +47,7 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 ### Required
 
 - bun.js >= 1.0.0 ([install](https://bun.sh))
-- MPD (Music Player Daemon) installed and running
+- MPD (Music Player Daemon) or Mopidy installed and running
 - Linux environment (primary target)
 
 ### Optional
@@ -55,6 +55,7 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 - Überzug++ for album art display: `sudo apt install ueberzug` or build from source
 - Ollama for local AI models: [install guide](https://ollama.ai)
 - OpenRouter API key for remote AI models: [get key](https://openrouter.ai)
+- Mopidy for streaming services (YouTube Music, Spotify, etc.) - see [MOPIDY_SETUP.md](MOPIDY_SETUP.md)
 
 ## Installation
 
@@ -66,7 +67,9 @@ cd Conductor
 bun install
 ```
 
-### 2. Setup MPD
+### 2. Setup MPD or Mopidy
+
+**Option A: MPD (traditional)**
 
 If MPD is not already installed:
 
@@ -106,6 +109,25 @@ Update your music database:
 ```bash
 mpc update
 ```
+
+**Option B: Mopidy (for streaming services like YouTube Music, Spotify)**
+
+See the complete guide: [MOPIDY_SETUP.md](MOPIDY_SETUP.md)
+
+Quick setup:
+
+```bash
+# Install Mopidy and YouTube Music plugin
+pip3 install mopidy mopidy-ytmusic
+
+# Setup YouTube Music authentication
+mopidy-ytmusic setup
+
+# Start Mopidy
+mopidy
+```
+
+Conductor works with both MPD and Mopidy - they use the same protocol!
 
 ### 3. Configure AI Provider
 
