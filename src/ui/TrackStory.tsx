@@ -11,6 +11,8 @@ interface TrackStoryProps {
   story: string;
   trackTitle?: string;
   artist?: string;
+  isGeneratingTTS?: boolean;
+  ttsProgress?: string;
   onClose?: () => void;
 }
 
@@ -18,6 +20,8 @@ export const TrackStory: React.FC<TrackStoryProps> = ({
   story, 
   trackTitle, 
   artist,
+  isGeneratingTTS = false,
+  ttsProgress = '',
   onClose 
 }) => {
   if (!story) return null;
@@ -43,9 +47,21 @@ export const TrackStory: React.FC<TrackStoryProps> = ({
         <Text wrap="wrap">{story}</Text>
       </Box>
 
+      {isGeneratingTTS && (
+        <Box marginTop={1}>
+          <Text color="yellow">🎤 {ttsProgress}</Text>
+        </Box>
+      )}
+
+      {ttsProgress && !isGeneratingTTS && (
+        <Box marginTop={1}>
+          <Text color="green">✓ {ttsProgress}</Text>
+        </Box>
+      )}
+
       <Box marginTop={1}>
         <Text color="gray" dimColor>
-          Type "close story" to hide | AI-generated content may be inaccurate
+          Type "close story" to hide{ttsProgress && ' and stop narration'} | AI-generated content may be inaccurate
         </Text>
       </Box>
     </Box>

@@ -17,6 +17,8 @@ const config = {
   aiApiKey: process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY,
   aiModel: process.env.AI_MODEL,
   aiBaseURL: process.env.AI_BASE_URL || process.env.OLLAMA_BASE_URL,
+  ttsEnabled: process.env.TTS_ENABLED === 'true',
+  ttsProvider: (process.env.TTS_PROVIDER || 'openai') as 'piper' | 'openai',
 };
 
 // Banner
@@ -36,6 +38,9 @@ console.log(`  MPD: ${config.mpdHost}:${config.mpdPort}`);
 console.log(`  AI Provider: ${config.aiProvider}`);
 if (config.aiModel) {
   console.log(`  AI Model: ${config.aiModel}`);
+}
+if (config.ttsEnabled) {
+  console.log(`  TTS: ${config.ttsProvider} (enabled)`);
 }
 console.log('');
 

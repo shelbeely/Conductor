@@ -14,6 +14,8 @@ import { Queue } from './ui/Queue';
 import { Visualizer } from './ui/Visualizer';
 import { CommandInput } from './ui/CommandInput';
 import { TrackStory } from './ui/TrackStory';
+import { TTSManager } from './tts/manager';
+import type { TTSConfig } from './tts/types';
 
 interface AppProps {
   mpdHost?: string;
@@ -22,6 +24,8 @@ interface AppProps {
   aiApiKey?: string;
   aiModel?: string;
   aiBaseURL?: string;
+  ttsEnabled?: boolean;
+  ttsProvider?: 'piper' | 'openai';
 }
 
 export const App: React.FC<AppProps> = ({
@@ -31,6 +35,8 @@ export const App: React.FC<AppProps> = ({
   aiApiKey,
   aiModel,
   aiBaseURL,
+  ttsEnabled = false,
+  ttsProvider = 'openai',
 }) => {
   const { exit } = useApp();
 
@@ -47,6 +53,16 @@ export const App: React.FC<AppProps> = ({
   });
   const [mbClient] = useState(() => new MusicBrainzClient());
   const [artManager] = useState(() => new AlbumArtManager());
+  const [ttsManager] = useState(() => {
+    const ttsConfig: TTSConfig = {
+      enabled: ttsEnabled,
+      provider: ttsProvider,
+      openaiApiKey: aiApiKey,
+      piperPath: process.env.PIPER_PATH,
+      piperModelPath: process.env.PIPER_MODEL_PATH,
+    };
+    return new TTSManager(ttsConfig);
+  });
 
   const [connected, setConnected] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<EnrichedTrack | null>(null);
@@ -60,6 +76,8 @@ export const App: React.FC<AppProps> = ({
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [trackStory, setTrackStory] = useState<string>('');
   const [showTrackStory, setShowTrackStory] = useState(false);
+  const [isGeneratingTTS, setIsGeneratingTTS] = useState(false);
+  const [ttsProgress, setTtsProgress] = useState<string>('');
 
   // Initialize
   useEffect(() => {
@@ -178,6 +196,7 @@ export const App: React.FC<AppProps> = ({
       if (command.toLowerCase().includes('close story') || 
           command.toLowerCase().includes('hide story')) {
         setShowTrackStory(false);
+        ttsManager.stop(); // Stop TTS playback
         setAiResponse('Track story closed');
         setIsProcessing(false);
         return;
@@ -503,9 +522,32 @@ Keep it engaging and informative. If you don't know specific details, provide ge
       
       setTrackStory(story);
       setAiResponse(`Story loaded for "${track}"`);
+
+      // Pre-generate TTS audio if enabled
+      if (ttsManager.isAvailable()) {
+        setIsGeneratingTTS(true);
+        setTtsProgress('Generating audio narration...');
+        
+        try {
+          // Create cache key from track and artist
+          const cacheKey = `${artist}-${track}`.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          
+          // Generate audio in chunks
+          await ttsManager.queueLongSpeech(story, cacheKey);
+          
+          setTtsProgress('Audio ready - narration will play automatically');
+          setAiResponse(`Story and narration ready for "${track}"`);
+        } catch (err) {
+          setTtsProgress(`TTS generation failed: ${err}`);
+          console.error('TTS generation error:', err);
+        } finally {
+          setIsGeneratingTTS(false);
+        }
+      }
     } catch (err) {
       setAiResponse(`Failed to fetch track story: ${err}`);
       setShowTrackStory(false);
+      setIsGeneratingTTS(false);
     }
   };
 
@@ -561,7 +603,12 @@ Keep it engaging and informative. If you don't know specific details, provide ge
           story={trackStory}
           trackTitle={currentTrack?.title}
           artist={currentTrack?.artist || currentTrack?.albumArtist}
-          onClose={() => setShowTrackStory(false)}
+          isGeneratingTTS={isGeneratingTTS}
+          ttsProgress={ttsProgress}
+          onClose={() => {
+            setShowTrackStory(false);
+            ttsManager.stop();
+          }}
         />
       )}
 
