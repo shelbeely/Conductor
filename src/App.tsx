@@ -78,6 +78,12 @@ export const App: React.FC<AppProps> = ({
   const [showTrackStory, setShowTrackStory] = useState(false);
   const [isGeneratingTTS, setIsGeneratingTTS] = useState(false);
   const [ttsProgress, setTtsProgress] = useState<string>('');
+  
+  // AI DJ feature state
+  const [aiDjEnabled, setAiDjEnabled] = useState(true);
+  const [tracksSinceLastDj, setTracksSinceLastDj] = useState(0);
+  const [djIntroduced, setDjIntroduced] = useState(false);
+  const [lastDjTrack, setLastDjTrack] = useState<string>('');
 
   // Initialize
   useEffect(() => {
@@ -135,6 +141,17 @@ export const App: React.FC<AppProps> = ({
         // Enrich track with metadata
         const enriched = await mbClient.enrichTrack(newTrack);
         setCurrentTrack(enriched);
+
+        // Increment track counter for AI DJ
+        setTracksSinceLastDj(prev => prev + 1);
+
+        // Trigger AI DJ commentary every 4-5 songs if enabled and TTS available
+        if (aiDjEnabled && ttsManager.isAvailable() && tracksSinceLastDj >= 4 && lastDjTrack !== newTrack.file) {
+          // Trigger DJ commentary in the background
+          triggerAiDjCommentary(enriched);
+          setTracksSinceLastDj(0);
+          setLastDjTrack(newTrack.file);
+        }
 
         // Update album art
         if (enriched.releaseInfo?.coverArtUrl && artManager.isAvailable()) {
@@ -198,6 +215,26 @@ export const App: React.FC<AppProps> = ({
         setShowTrackStory(false);
         ttsManager.stop(); // Stop TTS playback
         setAiResponse('Track story closed');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Handle AI DJ enable/disable
+      if (command.toLowerCase().includes('enable dj') || 
+          command.toLowerCase().includes('turn on dj') ||
+          command.toLowerCase().includes('activate dj')) {
+        setAiDjEnabled(true);
+        setAiResponse('AI DJ hosts enabled - they\'ll pop in every 4-5 songs');
+        setIsProcessing(false);
+        return;
+      }
+
+      if (command.toLowerCase().includes('disable dj') || 
+          command.toLowerCase().includes('turn off dj') ||
+          command.toLowerCase().includes('deactivate dj')) {
+        setAiDjEnabled(false);
+        ttsManager.clearQueue(); // Clear any pending DJ commentary
+        setAiResponse('AI DJ hosts disabled');
         setIsProcessing(false);
         return;
       }
@@ -587,6 +624,73 @@ Host 2: Absolutely! I remember when this first came out...`;
     return dialogue;
   };
 
+  // AI DJ Commentary - triggers automatically between songs
+  const triggerAiDjCommentary = async (track: EnrichedTrack) => {
+    try {
+      const artist = track.artist || track.albumArtist || 'Unknown Artist';
+      const title = track.title || 'Unknown Track';
+      const album = track.album || '';
+
+      // Generate short, punchy DJ commentary
+      const introText = !djIntroduced 
+        ? `This is your first time hearing from us! We're AI-generated hosts - think of us as your knowledgeable friends hanging out with you. We'll pop in every few songs to share some fun facts. Fair warning: we're AI, so we might get things wrong sometimes! But we'll do our best to keep it interesting.
+
+` 
+        : '';
+
+      const prompt = `You are creating a SHORT radio DJ commentary (30-60 seconds when spoken) between two AI co-hosts about the song that just started playing: "${title}" by ${artist}${album ? ` from the album ${album}` : ''}.
+
+${introText}Format as a quick back-and-forth:
+
+Host 1: [1-2 sentences]
+Host 2: [1-2 sentences]
+Host 1: [1-2 sentences]
+Host 2: [1 sentence closing]
+
+Keep it:
+- Conversational and fun ("radio DJ energy")
+- Short and punchy (4-6 exchanges max)
+- Include ONE interesting fact (artist backstory, production trivia, cultural context, or "did you know?")
+- Natural reactions ("Oh man, this track!", "I love this part")
+- Self-aware that you're AI if first time
+
+Example style:
+Host 1: Alright, here comes "${title}" by ${artist}!
+Host 2: Oh this is a good one. Did you know...
+Host 1: No way, really?
+Host 2: Yep! And that's why...`;
+
+      const response = await aiAgent.processCommand(prompt);
+      const commentary = response.message || '';
+
+      if (!djIntroduced) {
+        setDjIntroduced(true);
+      }
+
+      // Parse and queue DJ commentary
+      if (ttsManager.isAvailable() && commentary) {
+        const dialogue = parseDialogue(commentary);
+        
+        if (dialogue.length > 0) {
+          // Cache key based on track
+          const cacheKey = `dj_${artist}_${title}`.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          
+          // Queue in background - don't block playback
+          ttsManager.queueDialogue(dialogue, cacheKey).catch(err => {
+            console.error('Failed to queue DJ commentary:', err);
+          });
+          
+          // Show subtle notification
+          setAiResponse(`🎙️ AI DJs chiming in...`);
+          setTimeout(() => setAiResponse(''), 3000);
+        }
+      }
+    } catch (err) {
+      console.error('AI DJ commentary failed:', err);
+      // Fail silently - don't interrupt music
+    }
+  };
+
   // Render
   if (error) {
     return (
@@ -656,8 +760,13 @@ Host 2: Absolutely! I remember when this first came out...`;
       
       <Box marginTop={1}>
         <Text color="gray" dimColor>
-          Commands: "beyond the beat", "generate a workout playlist", "list models" | Ctrl+C to quit
+          Commands: "beyond the beat", "generate a workout playlist", {aiDjEnabled ? '"disable dj"' : '"enable dj"'} | Ctrl+C to quit
         </Text>
+        {aiDjEnabled && ttsManager.isAvailable() && (
+          <Text color="green" dimColor>
+            🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
+          </Text>
+        )}
       </Box>
     </Box>
   );

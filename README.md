@@ -19,6 +19,12 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 - Activity-based: "make a workout playlist"
 - Genre-specific: "create a jazz playlist with 30 tracks"
 
+**AI DJ Hosts (NEW in 0.2.0):** Radio-style commentary between songs
+- Two AI hosts pop in every 4-5 songs with fun facts and trivia
+- Short 30-60 second interjections like a real radio show
+- Self-aware AI that admits it might be wrong
+- Works automatically with playlists and radio stations
+
 **Dynamic Model Selection:** Switch AI models on the fly
 - List available models from your provider
 - Change models without restarting
