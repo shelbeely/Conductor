@@ -674,6 +674,67 @@ create a mellow acoustic playlist for evenings
 
 Mix mood, genre, activity, and length. The more specific you are, the more targeted the results.
 
+### Advanced MusicBrainz-powered filtering
+
+**NEW in v0.2.0:** Use rich MusicBrainz metadata for sophisticated playlist generation by instrument, band members, country, and time period.
+
+#### Instrument-based playlists
+
+```
+create rock music featuring violins
+make jazz with saxophone
+generate classical with piano
+build tracks featuring acoustic guitar
+```
+
+The system enriches tracks with MusicBrainz data and filters by instrument mentions. Works best with classical, jazz, and well-documented albums.
+
+#### Band member and vocalist searches
+
+```
+play music featuring John Bonham
+create tracks with David Gilmour
+make songs with Amy Lee
+generate music featuring specific performers
+```
+
+Searches artist credits and band membership from MusicBrainz. Use full names for better results.
+
+#### Country/origin filtering
+
+```
+create British rock music
+make American blues
+generate French electronic
+build UK indie tracks
+```
+
+Uses MusicBrainz country codes to filter by artist nationality.
+
+#### Year and decade filtering
+
+```
+create 1990s rock playlist
+make music from 2010
+generate 80s pop
+build 1970s progressive rock
+```
+
+Filters by release date with decade or year matching.
+
+#### Complex combined queries
+
+```
+create British rock from the 1970s featuring violins
+make American jazz from the 1960s with saxophone
+generate 90s alternative with female vocalists
+build modern classical featuring piano
+```
+
+Combine multiple MusicBrainz criteria. The system enriches up to 50 tracks with full metadata and applies all filters.
+
+**Performance note:** Advanced filtering requires MusicBrainz API calls (50-60 seconds for 50 tracks). Results are cached for future queries.
+
 ### Theme-based playlists
 
 ```

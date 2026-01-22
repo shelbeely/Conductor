@@ -302,15 +302,97 @@ export const App: React.FC<AppProps> = ({
         return;
       }
 
-      // Use AI to analyze criteria and select tracks
-      // For now, use a simple heuristic: search for keywords in the criteria
+      // Parse criteria for advanced search terms
       const keywords = criteria.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
       let selectedTracks: TrackInfo[] = [];
 
-      // Search for tracks matching criteria
+      // Search for tracks matching basic criteria first
       for (const keyword of keywords) {
         const results = await mpdClient.search('any', keyword);
         selectedTracks = [...selectedTracks, ...results];
+      }
+
+      // If we have enough tracks, enrich them with MusicBrainz data for advanced filtering
+      if (selectedTracks.length > 0 || keywords.length === 0) {
+        setAiResponse(`Enriching ${Math.min(selectedTracks.length || 50, 50)} tracks with metadata...`);
+        
+        // Sample tracks to enrich (limit to avoid rate limiting)
+        const tracksToEnrich = selectedTracks.length > 0 
+          ? selectedTracks.slice(0, 50) 
+          : allTracks.sort(() => Math.random() - 0.5).slice(0, 50);
+        
+        const enrichedTracks = await Promise.all(
+          tracksToEnrich.map(async (track) => {
+            try {
+              return await mbClient.enrichTrack(track);
+            } catch {
+              return track;
+            }
+          })
+        );
+
+        // Apply advanced filtering based on MusicBrainz data
+        const criteriaLower = criteria.toLowerCase();
+        const filtered = enrichedTracks.filter((track) => {
+          // Check for instrument mentions (from release/artist info)
+          if (criteriaLower.includes('violin') || criteriaLower.includes('strings')) {
+            // Look in artist disambiguation or genre
+            const hasStrings = track.artistInfo?.disambiguation?.toLowerCase().includes('violin') ||
+                              track.artistInfo?.disambiguation?.toLowerCase().includes('string') ||
+                              track.genre?.toLowerCase().includes('classical') ||
+                              track.genre?.toLowerCase().includes('chamber');
+            if (!hasStrings) return false;
+          }
+
+          // Check for specific band member/vocalist mentions
+          const artistNames = [
+            track.artist,
+            track.albumArtist,
+            ...(track.releaseInfo?.artistCredit?.map(ac => ac.name) || [])
+          ].filter(Boolean).map(n => n!.toLowerCase());
+
+          // Extract potential names from criteria (words starting with capital)
+          const nameMatches = criteria.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g);
+          if (nameMatches) {
+            const hasArtist = nameMatches.some(name => 
+              artistNames.some(an => an.includes(name.toLowerCase()))
+            );
+            if (!hasArtist) return false;
+          }
+
+          // Check for country/origin if specified
+          if (criteriaLower.includes('british') || criteriaLower.includes('uk')) {
+            if (track.artistInfo?.country !== 'GB') return false;
+          }
+          if (criteriaLower.includes('american') || criteriaLower.includes('us')) {
+            if (track.artistInfo?.country !== 'US') return false;
+          }
+
+          // Check for decade/year if specified
+          const yearMatch = criteria.match(/\b(19|20)\d{2}s?\b/);
+          if (yearMatch) {
+            const targetYear = parseInt(yearMatch[0]);
+            const trackYear = track.date ? parseInt(track.date.substring(0, 4)) : null;
+            if (!trackYear) return false;
+            
+            // If decade specified (e.g., "1990s"), match decade
+            if (yearMatch[0].includes('s')) {
+              const decade = Math.floor(targetYear / 10) * 10;
+              const trackDecade = Math.floor(trackYear / 10) * 10;
+              if (decade !== trackDecade) return false;
+            } else {
+              // Exact year match with +/- 2 year tolerance
+              if (Math.abs(trackYear - targetYear) > 2) return false;
+            }
+          }
+
+          return true;
+        });
+
+        // Use filtered tracks if we got results
+        if (filtered.length > 0) {
+          selectedTracks = filtered;
+        }
       }
 
       // Remove duplicates

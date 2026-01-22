@@ -899,6 +899,69 @@ create a mellow acoustic playlist for evenings
 
 Mix mood, genre, activity, and length for precise playlists.
 
+### Advanced MusicBrainz-based filtering
+
+**NEW in v0.2.0:** Playlists can now use MusicBrainz metadata for sophisticated filtering by instrument, band members, country, and time period.
+
+#### Instrument-based playlists
+
+```
+create rock music featuring violins
+make a playlist with piano
+generate music with acoustic guitar
+build tracks featuring saxophone
+create orchestral music with strings
+```
+
+The system enriches tracks with MusicBrainz data and filters by instrument mentions in artist info or genre classifications.
+
+#### Band member / vocalist playlists
+
+```
+play music featuring John Bonham
+create tracks with David Gilmour
+make songs with Amy Lee
+generate music featuring specific vocalists
+```
+
+Searches artist credits and band member information from MusicBrainz to find tracks featuring specific performers.
+
+#### Country / origin filtering
+
+```
+create a playlist of British rock
+make American blues music
+generate French electronic music
+build UK indie tracks
+```
+
+Uses MusicBrainz artist country data to filter by geographic origin.
+
+#### Decade / year filtering
+
+```
+create a 1990s rock playlist
+make music from 2010
+generate 80s pop hits
+build tracks from the 1970s
+create early 2000s alternative
+```
+
+Filters by release date with decade or year matching from MusicBrainz release info.
+
+#### Complex combined queries
+
+```
+create British rock from the 1970s featuring violins
+make American jazz from the 1960s with saxophone
+generate 90s alternative with female vocalists
+build modern classical featuring piano and strings
+```
+
+Combine multiple MusicBrainz criteria for highly specific playlists. The system enriches up to 50 tracks with full metadata and applies all filters.
+
+**Note:** Advanced filtering requires MusicBrainz API calls and may take longer (1-2 minutes for enrichment). Works best with well-known artists and releases that have complete MusicBrainz data.
+
 ## Saved playlists
 
 MPD's saved playlist feature requires `mpc` commands for now:

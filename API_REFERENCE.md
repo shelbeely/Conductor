@@ -521,6 +521,66 @@ Attempts fuzzy matching for tracks with imperfect metadata. Currently just calls
 const matched = await mb.fuzzyMatchTrack(localTrack);
 ```
 
+#### `searchRecordingsByCriteria(criteria: object): Promise<Array>`
+
+**NEW in v0.2.0:** Advanced search using MusicBrainz criteria like instruments, band members, and tags.
+
+```typescript
+// Search by instrument
+const recordings = await mb.searchRecordingsByCriteria({
+  instrument: 'violin',
+  artist: 'Led Zeppelin'
+});
+
+// Search by band member
+const tracks = await mb.searchRecordingsByCriteria({
+  bandMember: 'John Bonham'
+});
+
+// Search by tag
+const tagged = await mb.searchRecordingsByCriteria({
+  tag: 'progressive rock'
+});
+```
+
+**Parameters:**
+- `criteria.artist` (string, optional): Filter by artist name
+- `criteria.instrument` (string, optional): Find tracks featuring this instrument
+- `criteria.bandMember` (string, optional): Find tracks by this band member/performer
+- `criteria.tag` (string, optional): Filter by MusicBrainz tag
+
+**Returns:** Array of recording objects with title, artist, and releaseId
+
+**Use case:** Building sophisticated playlists like "rock music with violins" or "tracks featuring specific drummers"
+
+#### `getArtistDetails(artistId: string): Promise<object | null>`
+
+**NEW in v0.2.0:** Fetches detailed artist information including band members and tags.
+
+```typescript
+const details = await mb.getArtistDetails('artist-mbid-here');
+if (details) {
+  console.log(`Artist: ${details.info.name}`);
+  
+  if (details.members) {
+    details.members.forEach(member => {
+      console.log(`${member.name}: ${member.instrument}`);
+    });
+  }
+  
+  if (details.tags) {
+    console.log(`Tags: ${details.tags.join(', ')}`);
+  }
+}
+```
+
+**Returns:** Object containing:
+- `info`: Full `ArtistInfo` object
+- `members`: Array of band members with their instruments
+- `tags`: Array of genre/style tags
+
+**Use case:** Finding all members of a band, checking what instrument someone plays, or discovering an artist's genre classifications
+
 #### `clearCache(): void`
 
 Clears all cached metadata. Use this if you need fresh data.
