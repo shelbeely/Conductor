@@ -1,13 +1,26 @@
 # Mopidy Setup Guide
 
-Mopidy is a music server that's compatible with MPD (Music Player Daemon) but offers a better plugin ecosystem. Conductor works seamlessly with Mopidy, giving you access to YouTube Music, Spotify, SoundCloud, and other streaming services.
+Mopidy is a music server that implements the MPD protocol but offers a better plugin ecosystem for streaming services. While it enables YouTube Music, Spotify, and other streaming integrations, it has important limitations compared to MPD.
 
-## Why Mopidy?
+## ⚠️ Important Limitations
 
-- **MPD-compatible** - Drop-in replacement, Conductor works without modifications
-- **Better plugins** - Easy access to YouTube Music, Spotify, SoundCloud, Tidal
+**Mopidy implements an older version of the MPD protocol with missing features:**
+
+- **No album art support** - Mopidy-mpd doesn't support album art commands (see [mopidy/mopidy-mpd#68](https://github.com/mopidy/mopidy-mpd/issues/68))
+- **Limited protocol coverage** - Many MPD commands are not implemented or behave differently
+- **Metadata gaps** - Some music metadata may be incomplete or missing
+- **Performance differences** - May be slower than native MPD for local files
+
+**Consider these tradeoffs:**
+- Use Mopidy if you need streaming services (YouTube Music, Spotify, etc.) and can live without album art
+- Stick with MPD if you need full protocol support, album art, and maximum performance with local files
+- You can run both side-by-side on different ports and switch between them
+
+## Why Mopidy Despite Limitations?
+
+- **Better streaming plugins** - Easy access to YouTube Music, Spotify, SoundCloud, Tidal
 - **Python-based** - Simple installation via pip
-- **Active development** - Regular updates and new features
+- **Active plugin ecosystem** - Regular updates for streaming services
 - **Cross-platform** - Works on Linux, macOS, Windows
 
 ## Installation
@@ -212,7 +225,24 @@ journalctl --user -u mopidy -f
 
 ## Using Conductor with Mopidy
 
-Conductor connects to Mopidy the same way it connects to MPD. No configuration changes needed!
+Conductor connects to Mopidy the same way it connects to MPD. Most features work, but some limitations apply.
+
+### What Works
+
+✅ Playback control (play, pause, skip, seek)
+✅ Queue management (add, remove, reorder)
+✅ Library browsing and search
+✅ Playlists
+✅ Volume control
+✅ Track metadata (title, artist, album)
+✅ AI features (DJ hosts, Beyond the Beat, lyrics)
+✅ Natural language commands
+
+### What Doesn't Work
+
+❌ Album art display (protocol limitation)
+❌ Some advanced MPD commands
+❌ Certain metadata fields may be incomplete
 
 ### Environment Variables
 
@@ -233,7 +263,23 @@ MPD_PORT=6600
    - "play my liked songs"
    - "add this to my playlist"
 
+**Note:** Album art features in Conductor will not work with Mopidy due to protocol limitations.
+
 ## Migrating from MPD to Mopidy
+
+### Deciding Between MPD and Mopidy
+
+**Use MPD if:**
+- You primarily play local music files
+- You need full album art support
+- You want maximum performance and protocol coverage
+- You need complete metadata support
+
+**Use Mopidy if:**
+- You need streaming services (YouTube Music, Spotify, etc.)
+- You can live without album art in the TUI
+- You want easier plugin management
+- You primarily stream rather than play local files
 
 ### Keep MPD database
 
@@ -244,12 +290,17 @@ Mopidy can read your existing MPD database:
 media_dirs = /path/to/your/music
 ```
 
-### Run both simultaneously
+### Run both simultaneously (Recommended)
 
-You can run MPD and Mopidy on different ports:
+The best approach is to run both MPD and Mopidy on different ports:
 
-MPD: port 6600
-Mopidy: port 6601
+**MPD setup:**
+- Port 6600 (default)
+- For local music + full features
+
+**Mopidy setup:**
+- Port 6601
+- For streaming services
 
 Configure Mopidy:
 
@@ -258,15 +309,33 @@ Configure Mopidy:
 port = 6601
 ```
 
-Switch Conductor's `MPD_PORT` to test.
+**Switch between them in Conductor:**
+- Local music: `MPD_PORT=6600`
+- Streaming: `MPD_PORT=6601`
 
-### Full migration
+Or create shell aliases:
+```bash
+alias conductor-local='MPD_PORT=6600 npm start'
+alias conductor-stream='MPD_PORT=6601 npm start'
+```
+
+### Full migration (Not Recommended)
+
+Only if you don't need album art or full MPD features:
 
 1. Stop MPD: `systemctl --user stop mpd`
 2. Start Mopidy: `systemctl --user start mopidy`
 3. Point Conductor to port 6600 (Mopidy's default)
 
+**Warning:** You'll lose album art and some MPD features.
+
 ## Troubleshooting
+
+### Album art not showing
+
+This is a known limitation. Mopidy's MPD implementation doesn't support album art commands. See [mopidy/mopidy-mpd#68](https://github.com/mopidy/mopidy-mpd/issues/68).
+
+**Workaround:** Run MPD alongside Mopidy on a different port for local music with album art support.
 
 ### YouTube Music authentication fails
 
@@ -303,6 +372,10 @@ Look for your plugin in the output. If missing, reinstall:
 ```bash
 pip3 install --upgrade mopidy-ytmusic
 ```
+
+### Metadata incomplete or missing
+
+Some streaming services don't provide complete metadata. This is a limitation of the service's API, not Mopidy.
 
 ## Advanced Configuration
 
