@@ -1,37 +1,68 @@
-# Conductor 🎵
+# Conductor
 
-A Linux-first TUI music player built with **bun.js** and **Ink** that controls MPD (Music Player Daemon). Features AI-powered natural language commands via OpenRouter or local Ollama models.
+A Linux-first TUI music player built with bun.js and Ink that controls MPD (Music Player Daemon). Use natural language commands via OpenRouter, Ollama, Anthropic, or GitHub Copilot SDK.
 
 ## Features
 
-- 🎵 **MPD Control**: Full playback control, queue management, and library browsing
-- 🤖 **AI-Powered Commands**: Natural language interface using OpenRouter or Ollama
-  - "play some jazz"
-  - "skip to next track"
-  - "show me the queue"
-  - "set volume to 50"
-- 🎨 **Rich TUI**: Beautiful terminal interface with Ink (React for CLI)
-  - Now Playing view with track metadata
-  - Queue viewer with navigation
-  - Audio visualizer
-  - Album art display (via Überzug++)
-- 🏷️ **Metadata Enrichment**: MusicBrainz integration for artist/album info
-- 🖼️ **Album Art**: Überzug++ support with ASCII art fallback
-- 🔧 **Modular Architecture**: Clean separation of concerns (MPD, AI, Metadata, UI)
+**MPD Control:** Full playback control, queue management, and library browsing
+
+**AI-Powered Commands:** Natural language interface using multiple AI providers
+- "play some jazz"
+- "skip to next track"
+- "show me the queue"
+- "set volume to 50"
+- "create a relaxing playlist" (NEW in 0.2.0)
+- "use llama3.2 model" (NEW in 0.2.0)
+
+**Multiple AI Providers:**
+- OpenRouter (100+ models, remote)
+- Ollama (local, private)
+- Anthropic Claude (remote)
+- **GitHub Copilot SDK** (NEW in 0.2.0) - Use your Copilot subscription
+
+**Smart Playlist Generation:** AI creates playlists based on mood, genre, activity, or energy level
+- Mood-based: "generate a chill playlist"
+- Activity-based: "make a workout playlist"
+- Genre-specific: "create a jazz playlist with 30 tracks"
+
+**AI DJ Hosts (NEW in 0.2.0):** Radio-style commentary between songs
+- Two AI hosts pop in every 4-5 songs with fun facts and trivia
+- Short 30-60 second interjections like a real radio show
+- Self-aware AI that admits it might be wrong
+- Works automatically with playlists and radio stations
+
+**Dynamic Model Selection:** Switch AI models on the fly
+- List available models from your provider
+- Change models without restarting
+- See current model and provider information
+
+**Terminal Interface:** Built with Ink (React for CLI)
+- Now Playing view with track metadata
+- Queue viewer with navigation
+- Audio visualizer
+- Album art display (via Überzug++)
+
+**Metadata Enrichment:** MusicBrainz integration for artist/album info
+
+**Album Art:** Überzug++ support with ASCII art fallback
+
+**Modular Architecture:** Clean separation of concerns (MPD, AI, Metadata, UI)
 
 ## Prerequisites
 
 ### Required
 
-- **bun.js** >= 1.0.0 ([install](https://bun.sh))
-- **MPD** (Music Player Daemon) installed and running
+- bun.js >= 1.0.0 ([install](https://bun.sh))
+- MPD (Music Player Daemon) or Mopidy installed and running
 - Linux environment (primary target)
 
 ### Optional
 
-- **Überzug++** for album art display: `sudo apt install ueberzug` or build from source
-- **Ollama** for local AI models: [install guide](https://ollama.ai)
-- **OpenRouter API key** for remote AI models: [get key](https://openrouter.ai)
+- Überzug++ for album art display: `sudo apt install ueberzug` or build from source
+- Ollama for local AI models: [install guide](https://ollama.ai)
+- OpenRouter API key for remote AI models: [get key](https://openrouter.ai)
+- GitHub Copilot subscription for Copilot SDK: [see COPILOT_SDK_SETUP.md](COPILOT_SDK_SETUP.md)
+- Mopidy for streaming services (YouTube Music, Spotify, etc.) - see [MOPIDY_SETUP.md](MOPIDY_SETUP.md)
 
 ## Installation
 
@@ -43,7 +74,9 @@ cd Conductor
 bun install
 ```
 
-### 2. Setup MPD
+### 2. Setup MPD or Mopidy
+
+**Option A: MPD (traditional)**
 
 If MPD is not already installed:
 
@@ -83,6 +116,25 @@ Update your music database:
 ```bash
 mpc update
 ```
+
+**Option B: Mopidy (for streaming services like YouTube Music, Spotify)**
+
+See the complete guide: [MOPIDY_SETUP.md](MOPIDY_SETUP.md)
+
+Quick setup:
+
+```bash
+# Install Mopidy and YouTube Music plugin
+pip3 install mopidy mopidy-ytmusic
+
+# Setup YouTube Music authentication
+mopidy-ytmusic setup
+
+# Start Mopidy
+mopidy
+```
+
+Conductor works with both MPD and Mopidy - they use the same protocol!
 
 ### 3. Configure AI Provider
 
@@ -134,7 +186,7 @@ bun run dev
 
 ### Natural Language Commands
 
-Conductor understands natural language! Just type what you want:
+Conductor understands natural language. Just type what you want:
 
 **Playback Control:**
 - "play" / "pause" / "stop"
@@ -198,12 +250,12 @@ src/
 
 | Feature | OpenRouter | Ollama | Anthropic |
 |---------|-----------|--------|-----------|
-| **Cost** | Pay per use | Free | Pay per use |
-| **Privacy** | Data sent to API | Fully local | Data sent to API |
-| **Setup** | API key needed | Install locally | API key needed |
-| **Speed** | Fast (cloud) | Depends on hardware | Fast (cloud) |
-| **Models** | Many options | Local models only | Claude only |
-| **Offline** | ❌ No | ✅ Yes | ❌ No |
+| Cost | Pay per use | Free | Pay per use |
+| Privacy | Data sent to API | Fully local | Data sent to API |
+| Setup | API key needed | Install locally | API key needed |
+| Speed | Fast (cloud) | Depends on hardware | Fast (cloud) |
+| Models | Many options | Local models only | Claude only |
+| Offline | No | Yes | No |
 
 ## Troubleshooting
 
@@ -271,11 +323,7 @@ Contributions welcome! Please open an issue or PR.
 ## Credits
 
 - Built with [bun.js](https://bun.sh)
-- UI powered by [Ink](https://github.com/vadimdemedes/ink)
+- UI with [Ink](https://github.com/vadimdemedes/ink)
 - MPD client: [mpc-js](https://github.com/cotko/mpd.js)
 - Metadata from [MusicBrainz](https://musicbrainz.org)
 - AI via [OpenRouter](https://openrouter.ai) or [Ollama](https://ollama.ai)
-
----
-
-Made with ♫ by the Conductor team

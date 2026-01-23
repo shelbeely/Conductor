@@ -298,6 +298,126 @@ export class MusicBrainzClient {
   }
 
   /**
+   * Search for recordings by advanced criteria
+   * Can search by instrument, band member, etc.
+   */
+  async searchRecordingsByCriteria(criteria: {
+    artist?: string;
+    instrument?: string;
+    bandMember?: string;
+    tag?: string;
+  }): Promise<Array<{ title: string; artist: string; releaseId?: string }>> {
+    try {
+      await this.rateLimit();
+
+      let query = '';
+      const parts: string[] = [];
+
+      if (criteria.artist) {
+        parts.push(`artist:"${criteria.artist}"`);
+      }
+      if (criteria.instrument) {
+        parts.push(`(tag:"${criteria.instrument}" OR comment:"${criteria.instrument}")`);
+      }
+      if (criteria.bandMember) {
+        parts.push(`creditname:"${criteria.bandMember}"`);
+      }
+      if (criteria.tag) {
+        parts.push(`tag:"${criteria.tag}"`);
+      }
+
+      query = parts.join(' AND ');
+
+      const response = await fetch(
+        `${this.baseURL}/recording/?query=${encodeURIComponent(query)}&limit=50&fmt=json`,
+        {
+          headers: {
+            'User-Agent': this.userAgent,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json() as any;
+      const recordings = data.recordings || [];
+
+      return recordings.map((rec: any) => ({
+        title: rec.title,
+        artist: rec['artist-credit']?.[0]?.name || 'Unknown',
+        releaseId: rec.releases?.[0]?.id,
+      }));
+    } catch (error) {
+      console.error('Error searching recordings:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get detailed artist information including relationships (band members, etc.)
+   */
+  async getArtistDetails(artistId: string): Promise<{
+    info: ArtistInfo;
+    members?: Array<{ name: string; instrument?: string }>;
+    tags?: string[];
+  } | null> {
+    const cacheKey = `artist-details:${artistId}`;
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+
+    try {
+      await this.rateLimit();
+
+      const response = await fetch(
+        `${this.baseURL}/artist/${artistId}?inc=tags+artist-rels&fmt=json`,
+        {
+          headers: {
+            'User-Agent': this.userAgent,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json() as any;
+
+      const info: ArtistInfo = {
+        id: data.id,
+        name: data.name,
+        sortName: data['sort-name'],
+        disambiguation: data.disambiguation,
+        type: data.type,
+        gender: data.gender,
+        country: data.country,
+        lifeSpan: data['life-span'],
+      };
+
+      const members = data.relations
+        ?.filter((rel: any) => rel.type === 'member of band')
+        .map((rel: any) => ({
+          name: rel.artist?.name || '',
+          instrument: rel.attributes?.join(', '),
+        })) || [];
+
+      const tags = data.tags?.map((t: any) => t.name) || [];
+
+      const result = { info, members, tags };
+      this.cache.set(cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error('Error getting artist details:', error);
+      return null;
+    }
+  }
+
+  /**
    * Rate limiting to respect MusicBrainz API guidelines (1 request/second)
    */
   private lastRequestTime = 0;

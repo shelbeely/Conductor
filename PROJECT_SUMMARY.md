@@ -1,85 +1,85 @@
-# Project Summary: Conductor
+# Project summary: Conductor
 
-## What Was Built
+## What was built
 
-Conductor is a complete, production-ready TUI (Terminal User Interface) music player for Linux that combines:
+Conductor is a TUI (Terminal User Interface) music player for Linux that combines:
 
-1. **MPD Control**: Full integration with Music Player Daemon
-2. **AI-Powered Commands**: Natural language interface via OpenRouter or Ollama
-3. **Rich Metadata**: MusicBrainz integration for artist/album information
-4. **Visual Appeal**: Ink-based TUI with album art support (Überzug++)
-5. **Modular Architecture**: Clean, maintainable code structure
+1. MPD control with full Music Player Daemon integration
+2. AI-powered commands via OpenRouter or Ollama
+3. MusicBrainz integration for artist/album information
+4. Ink-based TUI with album art support (Überzug++)
+5. Modular code structure
 
-## Key Features Implemented
+## Key features implemented
 
-### ✅ Core Functionality
-- [x] MPD connection and playback control (play, pause, stop, next, previous)
-- [x] Queue management (add, remove, clear, view)
-- [x] Music library search
-- [x] Volume control and playback settings (repeat, random)
-- [x] Real-time status monitoring
-- [x] Automatic reconnection
+### Core functionality
+- MPD connection and playback control (play, pause, stop, next, previous)
+- Queue management (add, remove, clear, view)
+- Music library search
+- Volume control and playback settings (repeat, random)
+- Real-time status monitoring
+- Automatic reconnection
 
-### ✅ AI Integration
-- [x] Multi-provider support (OpenRouter, Ollama, Anthropic)
-- [x] Natural language command processing
-- [x] Structured tool calling with Zod schemas
-- [x] Conversation history and context
-- [x] 8 predefined tool schemas for music operations
+### AI integration
+- Multi-provider support (OpenRouter, Ollama, Anthropic)
+- Natural language command processing
+- Structured tool calling with Zod schemas
+- Conversation history and context
+- 8 predefined tool schemas for music operations
 
-### ✅ Metadata & Enrichment
-- [x] MusicBrainz API integration
-- [x] Artist/album/release information
-- [x] Cover art fetching from Cover Art Archive
-- [x] In-memory caching
-- [x] Rate limiting (1 req/sec)
+### Metadata and enrichment
+- MusicBrainz API integration
+- Artist/album/release information
+- Cover art fetching from Cover Art Archive
+- In-memory caching
+- Rate limiting (1 req/sec)
 
-### ✅ Album Art Display
-- [x] Überzug++ integration for terminal image display
-- [x] ASCII art fallback for unsupported terminals
-- [x] Image downloading and caching
-- [x] Automatic cleanup
+### Album art display
+- Überzug++ integration for terminal image display
+- ASCII art fallback for unsupported terminals
+- Image downloading and caching
+- Automatic cleanup
 
-### ✅ User Interface (Ink/React)
-- [x] Now Playing view with enriched metadata
-- [x] Queue display with current position indicator
-- [x] Audio visualizer (animated)
-- [x] Command input with history navigation
-- [x] Keyboard shortcuts
-- [x] Clean, responsive layout
+### User interface (Ink/React)
+- Now Playing view with enriched metadata
+- Queue display with current position indicator
+- Audio visualizer (animated)
+- Command input with history navigation
+- Keyboard shortcuts
+- Clean, responsive layout
 
-### ✅ Development & Documentation
-- [x] TypeScript configuration
-- [x] bun.js support (with npm fallback)
-- [x] Comprehensive README
-- [x] Detailed setup guide (SETUP.md)
-- [x] Contributing guidelines
-- [x] Architecture documentation
-- [x] MIT License
-- [x] Example configuration file
+### Development and documentation
+- TypeScript configuration
+- bun.js support (with npm fallback)
+- Comprehensive README
+- Detailed setup guide (SETUP.md)
+- Contributing guidelines
+- Architecture documentation
+- MIT License
+- Example configuration file
 
-## Technology Stack
+## Technology stack
 
-**Runtime**: bun.js (or Node.js 18+)
-**UI**: Ink (React for CLI)
-**MPD Client**: mpc-js
-**AI Providers**: OpenRouter API, Ollama
-**Metadata**: MusicBrainz API
-**Album Art**: Überzug++
-**Type Safety**: TypeScript
-**Validation**: Zod
-**Build**: TypeScript Compiler
+Runtime: bun.js (or Node.js 18+)
+UI: Ink (React for CLI)
+MPD Client: mpc-js
+AI Providers: OpenRouter API, Ollama
+Metadata: MusicBrainz API
+Album Art: Überzug++
+Type Safety: TypeScript
+Validation: Zod
+Build: TypeScript Compiler
 
-## Project Statistics
+## Project statistics
 
-- **Source Files**: 10 TypeScript/TSX files
-- **Total Lines of Code**: ~1,595 lines
-- **Modules**: 6 (MPD, AI, Metadata, Art, UI, App)
-- **UI Components**: 4 (NowPlaying, Queue, Visualizer, CommandInput)
-- **AI Tools**: 8 predefined schemas
-- **Dependencies**: 13 runtime, 4 dev dependencies
+Source Files: 10 TypeScript/TSX files
+Total Lines of Code: ~1,595 lines
+Modules: 6 (MPD, AI, Metadata, Art, UI, App)
+UI Components: 4 (NowPlaying, Queue, Visualizer, CommandInput)
+AI Tools: 8 predefined schemas
+Dependencies: 13 runtime, 4 dev dependencies
 
-## File Structure
+## File structure
 
 ```
 Conductor/
@@ -110,28 +110,28 @@ Conductor/
 └── tsconfig.json             - TypeScript config
 ```
 
-## What Works
+## What works
 
-✅ **Complete TypeScript build pipeline**
-✅ **Modular, extensible architecture**
-✅ **Multi-provider AI support (local & remote)**
-✅ **Full MPD integration via mpc-js**
-✅ **MusicBrainz metadata enrichment**
-✅ **Terminal UI with Ink/React**
-✅ **Graceful fallbacks** (ASCII art, connection retry)
-✅ **Environment-based configuration**
-✅ **Comprehensive documentation**
+- Complete TypeScript build pipeline
+- Modular, extensible architecture
+- Multi-provider AI support (local and remote)
+- Full MPD integration via mpc-js
+- MusicBrainz metadata enrichment
+- Terminal UI with Ink/React
+- Graceful fallbacks (ASCII art, connection retry)
+- Environment-based configuration
+- Comprehensive documentation
 
-## What Needs Live Testing
+## What needs live testing
 
-⚠️ **MPD Connection**: Requires MPD server running
-⚠️ **AI Providers**: Requires API keys or Ollama installation
-⚠️ **Album Art**: Requires Überzug++ for image display
-⚠️ **Music Playback**: Requires music library in MPD
+- MPD Connection: Requires MPD server running
+- AI Providers: Requires API keys or Ollama installation
+- Album Art: Requires Überzug++ for image display
+- Music Playback: Requires music library in MPD
 
-## Installation & Usage
+## Installation and usage
 
-### Quick Start
+### Quick start
 ```bash
 # Install dependencies
 bun install  # or npm install
@@ -155,7 +155,7 @@ bun start  # or npm start
 - (Optional) OpenRouter API key for remote AI
 - (Optional) Überzug++ for album art
 
-## Example Commands
+## Example commands
 
 Once running, try:
 - "play some jazz"
@@ -165,7 +165,7 @@ Once running, try:
 - "enable repeat mode"
 - "queue some Miles Davis"
 
-## Future Enhancements
+## Future enhancements
 
 Potential additions (not implemented):
 - [ ] Playlist management
@@ -178,32 +178,20 @@ Potential additions (not implemented):
 - [ ] Unit tests
 - [ ] Integration tests
 
-## Success Criteria Met
+## Implementation summary
 
-✅ **Linux-first TUI**: Built with Ink for terminal display
-✅ **Uses bun.js**: Configured with bun support (npm fallback)
-✅ **Controls MPD**: Full playback and queue control via mpc-js
-✅ **AI-powered**: Natural language commands via OpenRouter/Ollama
-✅ **Tool-based**: Structured tool schemas with Zod validation
-✅ **MusicBrainz**: Artist/release enrichment and matching
-✅ **Album Art**: Überzug++ with ASCII fallback
-✅ **Now Playing**: Track info with metadata display
-✅ **Queue View**: Playlist with navigation
-✅ **Visualizer**: Animated TUI visualizer
-✅ **Modular**: Clean separation (UI, MPD, AI, Metadata, Art)
+The project includes:
 
-## Conclusion
+- Linux-first TUI built with Ink for terminal display
+- bun.js runtime configured with npm fallback
+- MPD playback and queue control via mpc-js
+- Natural language commands via OpenRouter/Ollama
+- Structured tool schemas with Zod validation
+- MusicBrainz artist/release enrichment and matching
+- Überzug++ album art with ASCII fallback
+- Track info with metadata display
+- Playlist view with navigation
+- Animated TUI visualizer
+- Clean separation of concerns (UI, MPD, AI, Metadata, Art)
 
-Conductor is a **complete, functional TUI music player** that demonstrates:
-- Modern TypeScript development
-- Clean architectural patterns
-- Multi-provider AI integration
-- Rich terminal UI with React/Ink
-- External API integration (MusicBrainz)
-- Graceful error handling and fallbacks
-
-The codebase is production-ready, well-documented, and ready for community contributions!
-
----
-
-Built with ♫ using bun.js, Ink, MPD, and AI
+The codebase uses modern TypeScript, clean architectural patterns, and includes comprehensive documentation.

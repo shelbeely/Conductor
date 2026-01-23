@@ -13,10 +13,12 @@ import { App } from './App';
 const config = {
   mpdHost: process.env.MPD_HOST || 'localhost',
   mpdPort: parseInt(process.env.MPD_PORT || '6600'),
-  aiProvider: (process.env.AI_PROVIDER || 'ollama') as 'openrouter' | 'ollama' | 'anthropic',
-  aiApiKey: process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY,
+  aiProvider: (process.env.AI_PROVIDER || 'ollama') as 'openrouter' | 'ollama' | 'anthropic' | 'copilot',
+  aiApiKey: process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GITHUB_TOKEN,
   aiModel: process.env.AI_MODEL,
   aiBaseURL: process.env.AI_BASE_URL || process.env.OLLAMA_BASE_URL,
+  ttsEnabled: process.env.TTS_ENABLED === 'true',
+  ttsProvider: (process.env.TTS_PROVIDER || 'openai') as 'piper' | 'openai',
 };
 
 // Banner
@@ -36,6 +38,9 @@ console.log(`  MPD: ${config.mpdHost}:${config.mpdPort}`);
 console.log(`  AI Provider: ${config.aiProvider}`);
 if (config.aiModel) {
   console.log(`  AI Model: ${config.aiModel}`);
+}
+if (config.ttsEnabled) {
+  console.log(`  TTS: ${config.ttsProvider} (enabled)`);
 }
 console.log('');
 
