@@ -104,20 +104,229 @@ When AI DJ is active, you'll see:
 
 ## Technical details
 
-**Voice assignment:**
+### How DJ audio is generated
+
+The AI DJ feature uses a multi-step process to create natural-sounding radio commentary:
+
+**Step 1: Content generation (AI)**
+- AI analyzes the current track using metadata from MusicBrainz
+- Generates a conversational dialogue script between two hosts
+- Each line is tagged with the speaker (Host 1 or Host 2)
+- Commentary is kept short (30-60 seconds total)
+
+**Step 2: Text-to-speech conversion (TTS)**
+- Each line of dialogue is sent to the configured TTS provider
+- Different voices are used for different hosts:
+  - Host 1 = Echo (male voice)
+  - Host 2 = Shimmer (female voice)
+- Audio files are generated in MP3 or WAV format
+- Files are cached to avoid regenerating the same commentary
+
+**Step 3: Audio playback**
+- Generated audio files are queued for playback
+- System audio player (aplay, mpg123, etc.) plays each file sequentially
+- Playback happens between songs, not during them
+- Seamless transitions create a natural conversation flow
+
+**Step 4: Caching**
+- Commentary is cached by track ID to save costs and time
+- Cache persists across sessions
+- Old cache files are automatically cleaned up after 7 days
+
+### TTS provider options
+
+Conductor supports multiple TTS providers for generating DJ audio. Each has different trade-offs:
+
+#### OpenAI TTS (Recommended for cloud)
+
+**Best for:** High-quality voices, fast synthesis, dialogue format
+
+**Configuration:**
+```bash
+TTS_PROVIDER=openai
+TTS_ENABLED=true
+# Uses same OPENAI_API_KEY or OPENROUTER_API_KEY as AI provider
+```
+
+**Available voices:**
+- `alloy` - Neutral, clear voice
+- `echo` - Male voice (used for Host 1)
+- `fable` - Expressive, warm voice
+- `onyx` - Deep, authoritative voice
+- `nova` - Energetic female voice
+- `shimmer` - Female voice (used for Host 2)
+
+**Pros:**
+- Very natural sounding
+- Fast synthesis (200-500ms)
+- Multiple voice options perfect for dialogue
+- Same API as your AI provider (if using OpenRouter)
+
+**Cons:**
+- Requires internet connection
+- Costs ~$15 per 1M characters (~16 hours of audio)
+- Audio sent to cloud (privacy consideration)
+
+**Pricing:** $15 per 1M characters. For reference:
+- 100 DJ commentary sessions ≈ 50,000 characters ≈ $0.75
+- Average user might spend $1-3/month on DJ audio
+
+#### Piper TTS (Recommended for local/privacy)
+
+**Best for:** Offline use, privacy, zero cost
+
+**Configuration:**
+```bash
+TTS_PROVIDER=piper
+TTS_ENABLED=true
+PIPER_PATH=/usr/local/bin/piper
+PIPER_MODEL_PATH=/usr/local/share/piper/voices/en_US-lessac-medium.onnx
+```
+
+**Installation:**
+```bash
+# Download Piper
+wget https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz
+tar -xzf piper_amd64.tar.gz
+
+# Download voice models
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+**Available voices:** 50+ languages and voices on [Piper Voices](https://huggingface.co/rhasspy/piper-voices)
+
+**Pros:**
+- Completely free and open source
+- No internet required
+- Fast synthesis (100-300ms)
+- Private - nothing sent to cloud
+- Multiple language and voice options
+
+**Cons:**
+- Voice quality slightly below premium cloud options
+- Requires local disk space (50-100MB per voice model)
+- CPU usage during synthesis
+- Single voice per model (harder to do true dialogue)
+
+**Note:** Piper uses a single voice per model, so DJ dialogue will use the same voice for both hosts. For true multi-voice dialogue, use OpenAI TTS.
+
+#### ElevenLabs TTS (Premium quality)
+
+**Best for:** Highest quality, most expressive voices
+
+**Configuration:**
+```bash
+TTS_PROVIDER=elevenlabs
+TTS_ENABLED=true
+ELEVENLABS_API_KEY=your_api_key
+ELEVENLABS_VOICE_ID=default
+```
+
+**Pros:**
+- Best quality TTS available
+- Very expressive and natural
+- Voice cloning capabilities
+- Great for storytelling
+
+**Cons:**
+- More expensive than OpenAI
+- Higher latency (300-800ms)
+- Free tier limited to 10k characters/month
+- Requires separate API key
+
+**Pricing:** Free tier 10k chars/month, paid plans start at $5/month
+
+**Status:** Implementation planned but not yet available in Conductor
+
+#### Google Cloud TTS
+
+**Best for:** Multi-language support, generous free tier
+
+**Configuration:**
+```bash
+TTS_PROVIDER=google
+TTS_ENABLED=true
+GOOGLE_API_KEY=your_api_key
+GOOGLE_VOICE=en-US-Wavenet-A
+```
+
+**Pros:**
+- Generous free tier (1M chars/month)
+- 220+ voices in 40+ languages
+- WaveNet voices very high quality
+- SSML support for fine control
+
+**Cons:**
+- Requires Google Cloud setup
+- More complex authentication
+- Privacy concerns (Google)
+
+**Pricing:** Free tier 1M chars/month, then $4-16 per 1M chars
+
+**Status:** Implementation planned but not yet available in Conductor
+
+### Choosing a TTS provider
+
+**For most users:** Start with **Piper** (free, private, works offline)
+
+**For best quality dialogue:** Use **OpenAI TTS** (great voices, affordable)
+
+**For maximum privacy:** Use **Piper** with **Ollama** (100% local, zero network)
+
+**For professional use:** Consider **ElevenLabs** (highest quality, most expressive)
+
+### Voice assignment
+
+**OpenAI voices for dialogue:**
 - Host 1 = Echo (male voice)
 - Host 2 = Shimmer (female voice)
 
-**Audio handling:**
-- Commentary is pre-generated and cached
-- Queued in background - doesn't block music
-- Seamless transitions between voices
-- Falls back silently if TTS fails
+**Why these voices?**
+- Echo has a warm, conversational male tone perfect for a DJ
+- Shimmer has an energetic female voice that complements Echo
+- Together they create a natural back-and-forth conversation
 
-**Frequency:**
-- Default: Every 4 songs
+**Customization:**
+You can change the voices used for each host by modifying the voice assignment in the code, but Echo and Shimmer are the default and recommended pairing for DJ dialogue.
+
+### Audio handling
+
+**Pre-generation and caching:**
+- Commentary is generated before playback starts
+- Audio files are cached by track ID
+- Prevents regeneration for repeated plays
+- Reduces API costs and latency
+
+**Queue management:**
+- Audio is queued in the background
+- Doesn't block music playback
+- Each voice segment plays sequentially
+- Seamless transitions between speakers
+
+**Fallback behavior:**
+- If TTS fails, DJ silently skips that commentary
+- Music playback continues uninterrupted
+- Error logged but not shown to user (to avoid disruption)
+
+**Audio format:**
+- OpenAI generates MP3 files
+- Piper generates WAV files
+- Format is automatically detected by audio player
+
+### Frequency
+
+**Default behavior:**
+- DJ commentary every 4 songs
 - Configurable via `AI_DJ_FREQUENCY` environment variable
 - Tracks counter resets when commentary plays
+
+**Examples:**
+```bash
+AI_DJ_FREQUENCY=3   # More frequent (every 3 songs)
+AI_DJ_FREQUENCY=6   # Less frequent (every 6 songs)
+AI_DJ_FREQUENCY=10  # Rare (every 10 songs)
+```
 
 ## Comparison: AI DJ vs Beyond the Beat
 

@@ -541,6 +541,320 @@ If ASCII generation fails, album art section shows track text only.
 **Forcing fallback:**
 No way to force ASCII art if Überzug++ is available. To disable Überzug++, uninstall it or modify the code.
 
+## Text-to-Speech (TTS) Configuration
+
+Conductor supports text-to-speech for the AI DJ feature and "Beyond the Beat" track stories. Multiple TTS providers are available, each with different trade-offs.
+
+### TTS Provider Selection
+
+#### `TTS_ENABLED`
+- **Type:** Boolean
+- **Default:** `false`
+- **Description:** Enable or disable text-to-speech features
+- **Examples:**
+  ```bash
+  TTS_ENABLED=true   # Enable TTS
+  TTS_ENABLED=false  # Disable TTS
+  ```
+
+#### `TTS_PROVIDER`
+- **Type:** String (enum)
+- **Options:** `openai`, `piper`, `elevenlabs`, `google`
+- **Default:** `openai`
+- **Description:** Which TTS provider to use for audio generation
+- **Examples:**
+  ```bash
+  TTS_PROVIDER=openai      # Cloud TTS with high quality voices
+  TTS_PROVIDER=piper       # Local TTS, private and free
+  TTS_PROVIDER=elevenlabs  # Premium cloud TTS (planned)
+  TTS_PROVIDER=google      # Google Cloud TTS (planned)
+  ```
+
+### OpenAI TTS Configuration
+
+**Best for:** High-quality dialogue with multiple voices, cloud-based
+
+#### `OPENAI_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using OpenAI TTS)
+- **Description:** OpenAI API key for TTS synthesis
+- **Notes:** If using OpenRouter as AI provider, it may use the same `OPENROUTER_API_KEY`
+- **Example:**
+  ```bash
+  OPENAI_API_KEY=sk-...
+  ```
+
+#### `OPENAI_TTS_VOICE`
+- **Type:** String (enum)
+- **Options:** `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`
+- **Default:** `alloy`
+- **Description:** Voice to use for single-voice TTS
+- **Voice characteristics:**
+  - `alloy` - Neutral, versatile voice
+  - `echo` - Warm male voice (used for DJ Host 1)
+  - `fable` - British accent, expressive
+  - `onyx` - Deep, authoritative male voice
+  - `nova` - Energetic female voice
+  - `shimmer` - Clear female voice (used for DJ Host 2)
+- **Example:**
+  ```bash
+  OPENAI_TTS_VOICE=echo    # Male DJ voice
+  OPENAI_TTS_VOICE=shimmer # Female DJ voice
+  ```
+
+#### `OPENAI_TTS_SPEED`
+- **Type:** Float
+- **Range:** 0.25 to 4.0
+- **Default:** 1.0
+- **Description:** Speech rate multiplier
+- **Examples:**
+  ```bash
+  OPENAI_TTS_SPEED=1.0   # Normal speed
+  OPENAI_TTS_SPEED=1.2   # 20% faster (more energetic)
+  OPENAI_TTS_SPEED=0.9   # 10% slower (more deliberate)
+  ```
+
+**OpenAI TTS details:**
+- **Quality:** Very natural and expressive
+- **Latency:** 200-500ms for synthesis
+- **Format:** MP3 audio files
+- **Cost:** $15 per 1 million characters (~16 hours of audio)
+  - 100 DJ commentaries ≈ 50,000 chars ≈ $0.75
+  - Average usage: $1-3/month
+- **Multi-voice:** Yes - perfect for DJ dialogue with Echo and Shimmer
+- **API endpoint:** `https://api.openai.com/v1/audio/speech`
+
+### Piper TTS Configuration
+
+**Best for:** Offline use, privacy, zero cost
+
+#### `PIPER_PATH`
+- **Type:** String (path)
+- **Default:** `/usr/local/bin/piper` or `piper` (from PATH)
+- **Description:** Full path to Piper executable
+- **Examples:**
+  ```bash
+  PIPER_PATH=/usr/local/bin/piper
+  PIPER_PATH=/home/user/.local/bin/piper
+  PIPER_PATH=piper  # Use from PATH
+  ```
+
+#### `PIPER_MODEL_PATH`
+- **Type:** String (path)
+- **Required:** Yes (when using Piper)
+- **Description:** Full path to Piper voice model (.onnx file)
+- **Examples:**
+  ```bash
+  PIPER_MODEL_PATH=/usr/local/share/piper/voices/en_US-lessac-medium.onnx
+  PIPER_MODEL_PATH=/home/user/.local/share/piper/en_US-amy-low.onnx
+  ```
+
+**Piper installation:**
+```bash
+# Download Piper binary
+wget https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz
+tar -xzf piper_amd64.tar.gz
+sudo mv piper /usr/local/bin/
+
+# Download voice model (example: US English, medium quality)
+mkdir -p ~/.local/share/piper/voices
+cd ~/.local/share/piper/voices
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+**Available Piper voices:**
+- Browse at: https://huggingface.co/rhasspy/piper-voices
+- 50+ languages available
+- Multiple quality levels (low, medium, high)
+- Model sizes: 5-100MB depending on quality
+
+**Piper TTS details:**
+- **Quality:** Natural but slightly synthetic
+- **Latency:** 100-300ms for synthesis
+- **Format:** WAV audio files
+- **Cost:** Free and open source
+- **Multi-voice:** No - uses single voice per model (DJ dialogue uses same voice for both hosts)
+- **Offline:** Yes - fully local, no network needed
+- **Privacy:** Complete - nothing sent to cloud
+
+### Audio Playback Configuration
+
+#### `TTS_AUDIO_PLAYER`
+- **Type:** String (enum)
+- **Options:** `aplay`, `mpg123`, `ffplay`, `sox`
+- **Default:** Auto-detected
+- **Description:** Audio player to use for TTS playback
+- **Examples:**
+  ```bash
+  TTS_AUDIO_PLAYER=aplay   # ALSA player (WAV files)
+  TTS_AUDIO_PLAYER=mpg123  # MP3 player
+  TTS_AUDIO_PLAYER=ffplay  # FFmpeg player (supports all formats)
+  TTS_AUDIO_PLAYER=sox     # SoX player
+  ```
+
+**Auto-detection:**
+If not specified, Conductor tries players in this order:
+1. `aplay` (most common on Linux)
+2. `mpg123` (good for MP3 files)
+3. `ffplay` (most versatile)
+4. `sox` (fallback)
+
+**Installing audio players:**
+```bash
+# Ubuntu/Debian
+sudo apt install alsa-utils mpg123 ffmpeg sox
+
+# Fedora
+sudo dnf install alsa-utils mpg123 ffmpeg sox
+
+# Arch
+sudo pacman -S alsa-utils mpg123 ffmpeg sox
+```
+
+#### `TTS_CACHE_DIR`
+- **Type:** String (path)
+- **Default:** `/tmp/conductor-tts`
+- **Description:** Directory for caching generated TTS audio
+- **Examples:**
+  ```bash
+  TTS_CACHE_DIR=/tmp/conductor-tts
+  TTS_CACHE_DIR=/var/cache/conductor/tts
+  TTS_CACHE_DIR=/home/user/.cache/conductor/tts
+  ```
+
+**Cache behavior:**
+- Audio files are cached by track ID and commentary type
+- Cache persists across sessions
+- Old files (>7 days) are automatically cleaned up
+- Reduces API costs by reusing previously generated audio
+- Cache directory is created automatically if missing
+
+### AI DJ Configuration
+
+The AI DJ feature uses TTS to create radio-style commentary between songs.
+
+#### `AI_DJ_ENABLED`
+- **Type:** Boolean
+- **Default:** `true`
+- **Description:** Enable AI DJ hosts that pop in between songs
+- **Requires:** `TTS_ENABLED=true`
+- **Examples:**
+  ```bash
+  AI_DJ_ENABLED=true   # DJ hosts active
+  AI_DJ_ENABLED=false  # No DJ commentary
+  ```
+
+#### `AI_DJ_FREQUENCY`
+- **Type:** Integer
+- **Default:** `4`
+- **Description:** Number of songs between DJ commentary
+- **Range:** 1-100 (practical range: 3-10)
+- **Examples:**
+  ```bash
+  AI_DJ_FREQUENCY=3   # More frequent (every 3 songs)
+  AI_DJ_FREQUENCY=4   # Default (every 4 songs)
+  AI_DJ_FREQUENCY=6   # Less frequent (every 6 songs)
+  AI_DJ_FREQUENCY=10  # Rare (every 10 songs)
+  ```
+
+### Complete TTS Examples
+
+#### Example 1: OpenAI TTS (Cloud, High Quality)
+```bash
+# Enable TTS with OpenAI
+TTS_ENABLED=true
+TTS_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+
+# Use default voices (echo for Host 1, shimmer for Host 2)
+OPENAI_TTS_VOICE=alloy
+OPENAI_TTS_SPEED=1.0
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 2: Piper TTS (Local, Private, Free)
+```bash
+# Enable TTS with Piper
+TTS_ENABLED=true
+TTS_PROVIDER=piper
+PIPER_PATH=/usr/local/bin/piper
+PIPER_MODEL_PATH=/usr/local/share/piper/voices/en_US-lessac-medium.onnx
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=aplay
+TTS_CACHE_DIR=/home/user/.cache/conductor/tts
+```
+
+#### Example 3: TTS Disabled
+```bash
+# Disable all TTS features
+TTS_ENABLED=false
+
+# AI DJ will be automatically disabled
+AI_DJ_ENABLED=false
+```
+
+### TTS Provider Comparison
+
+| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS |
+|---------|-----------|-----------|------------|-----------|
+| **Quality** | Very high | Good | Excellent | Very high |
+| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M |
+| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms |
+| **Offline** | No | Yes | No | No |
+| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) |
+| **Setup** | API key only | Install + models | API key | Google Cloud |
+| **Privacy** | Cloud | Local | Cloud | Cloud |
+| **Status** | ✅ Implemented | ✅ Implemented | 🚧 Planned | 🚧 Planned |
+
+### TTS Troubleshooting
+
+**TTS not working:**
+1. Check `TTS_ENABLED=true` in configuration
+2. Verify TTS provider is correctly configured
+3. Test audio player: `aplay /usr/share/sounds/alsa/Front_Center.wav`
+4. Check logs for TTS errors
+
+**No audio output:**
+1. Verify audio player is installed: `which aplay mpg123 ffplay`
+2. Test system audio works
+3. Check volume levels
+4. Try different `TTS_AUDIO_PLAYER` option
+
+**Piper TTS fails:**
+1. Verify Piper is installed: `which piper` or check `PIPER_PATH`
+2. Verify model exists: `ls -lh $PIPER_MODEL_PATH`
+3. Test Piper directly: `echo "test" | piper --model <model_path> --output_file test.wav`
+4. Check model JSON file exists alongside .onnx file
+
+**OpenAI TTS fails:**
+1. Verify API key is correct
+2. Check internet connection
+3. Verify API key has credits (check OpenAI dashboard)
+4. Check for rate limiting errors in logs
+
+**AI DJ not speaking:**
+1. Ensure `TTS_ENABLED=true` and `AI_DJ_ENABLED=true`
+2. Check TTS provider is working
+3. Wait for 4 songs to play (default frequency)
+4. Check cache directory exists and is writable
+
+**For more TTS information, see:**
+- [AI_DJ_FEATURE.md](AI_DJ_FEATURE.md) - Complete AI DJ documentation
+- [TTS_RECOMMENDATIONS.md](TTS_RECOMMENDATIONS.md) - Detailed TTS provider guide
+
 ## UI Configuration
 
 Currently, UI is not configurable through environment variables.
