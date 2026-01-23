@@ -1,12 +1,13 @@
 /**
  * AI Agent Module
  * Handles natural language commands with support for multiple AI providers
- * - Remote: OpenRouter, Anthropic
+ * - Remote: OpenRouter, Anthropic, GitHub Copilot SDK
  * - Local: Ollama
  */
 
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { CopilotProvider } from './copilot-provider';
 
 // JSON Schema conversion options for OpenAPI compatibility
 const JSON_SCHEMA_OPTIONS = {
@@ -119,7 +120,7 @@ export const tools = [
 
 // AI Provider configuration
 export interface AIProviderConfig {
-  provider: 'openrouter' | 'anthropic' | 'ollama';
+  provider: 'openrouter' | 'anthropic' | 'ollama' | 'copilot';
   apiKey?: string;
   baseURL?: string;
   model?: string;
@@ -498,6 +499,9 @@ export class AIAgent {
       case 'anthropic':
         this.provider = new AnthropicProvider(config);
         break;
+      case 'copilot':
+        this.provider = new CopilotProvider(config);
+        break;
       default:
         throw new Error(`Unknown provider: ${config.provider}`);
     }
@@ -550,6 +554,7 @@ export class AIAgent {
     if (this.provider instanceof OpenRouterProvider) return 'openrouter';
     if (this.provider instanceof OllamaProvider) return 'ollama';
     if (this.provider instanceof AnthropicProvider) return 'anthropic';
+    if (this.provider instanceof CopilotProvider) return 'copilot';
     return 'unknown';
   }
 }

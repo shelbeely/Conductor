@@ -1,18 +1,24 @@
 # Conductor
 
-A Linux-first TUI music player built with bun.js and Ink that controls MPD (Music Player Daemon). Use natural language commands via OpenRouter or local Ollama models.
+A Linux-first TUI music player built with bun.js and Ink that controls MPD (Music Player Daemon). Use natural language commands via OpenRouter, Ollama, Anthropic, or GitHub Copilot SDK.
 
 ## Features
 
 **MPD Control:** Full playback control, queue management, and library browsing
 
-**AI-Powered Commands:** Natural language interface using OpenRouter or Ollama
+**AI-Powered Commands:** Natural language interface using multiple AI providers
 - "play some jazz"
 - "skip to next track"
 - "show me the queue"
 - "set volume to 50"
 - "create a relaxing playlist" (NEW in 0.2.0)
 - "use llama3.2 model" (NEW in 0.2.0)
+
+**Multiple AI Providers:**
+- OpenRouter (100+ models, remote)
+- Ollama (local, private)
+- Anthropic Claude (remote)
+- **GitHub Copilot SDK** (NEW in 0.2.0) - Use your Copilot subscription
 
 **Smart Playlist Generation:** AI creates playlists based on mood, genre, activity, or energy level
 - Mood-based: "generate a chill playlist"
@@ -55,6 +61,7 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 - Überzug++ for album art display: `sudo apt install ueberzug` or build from source
 - Ollama for local AI models: [install guide](https://ollama.ai)
 - OpenRouter API key for remote AI models: [get key](https://openrouter.ai)
+- GitHub Copilot subscription for Copilot SDK: [see COPILOT_SDK_SETUP.md](COPILOT_SDK_SETUP.md)
 - Mopidy for streaming services (YouTube Music, Spotify, etc.) - see [MOPIDY_SETUP.md](MOPIDY_SETUP.md)
 
 ## Installation

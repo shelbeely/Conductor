@@ -49,7 +49,7 @@ cp .env.example .env
 
 #### `AI_PROVIDER`
 - **Type:** String (enum)
-- **Options:** `ollama`, `openrouter`, `anthropic`
+- **Options:** `ollama`, `openrouter`, `anthropic`, `copilot`
 - **Default:** `ollama`
 - **Description:** Which AI provider to use for natural language commands
 - **Examples:**
@@ -57,6 +57,7 @@ cp .env.example .env
   AI_PROVIDER=ollama       # Local Ollama instance (free, private)
   AI_PROVIDER=openrouter   # OpenRouter API (paid, many models)
   AI_PROVIDER=anthropic    # Direct Anthropic API (paid)
+  AI_PROVIDER=copilot      # GitHub Copilot SDK (requires subscription)
   ```
 
 ### OpenRouter Configuration
@@ -98,6 +99,25 @@ cp .env.example .env
   OLLAMA_BASE_URL=https://ollama.myserver.com # HTTPS endpoint
   ```
 
+### GitHub Copilot SDK Configuration *NEW in v0.2.0*
+
+#### `GITHUB_TOKEN`
+- **Type:** String
+- **Required:** Yes (when using Copilot provider)
+- **Description:** GitHub Personal Access Token with `copilot` scope
+- **How to get:**
+  1. Go to https://github.com/settings/tokens
+  2. Click "Generate new token (classic)"
+  3. Select `copilot` scope
+  4. Generate and copy the token
+- **Example:**
+  ```bash
+  GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyz
+  ```
+- **Security:** Never commit this to version control. Store in `.env` file
+- **Requirements:** Active GitHub Copilot subscription (Individual, Business, or Enterprise)
+- **See:** [COPILOT_SDK_SETUP.md](COPILOT_SDK_SETUP.md) for complete setup guide
+
 ### Model Selection *NEW in v0.2.0*
 
 #### `AI_MODEL`
@@ -119,11 +139,18 @@ cp .env.example .env
   # Anthropic models (direct API)
   AI_MODEL=claude-3-opus
   AI_MODEL=claude-3-sonnet
+  
+  # GitHub Copilot SDK models
+  AI_MODEL=gpt-4o
+  AI_MODEL=gpt-4o-mini
+  AI_MODEL=o1-preview
+  AI_MODEL=claude-3.5-sonnet
   ```
 - **Notes:**
   - Model names are provider-specific
   - For Ollama, use model names from `ollama list`
   - For OpenRouter, use full model paths from their catalog
+  - For Copilot SDK, use supported model IDs (see COPILOT_SDK_SETUP.md)
   - Can be changed at runtime with natural language: "use llama3.2 model"
   - See available models: "show available models"
 

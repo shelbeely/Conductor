@@ -22,7 +22,7 @@ import type { TTSConfig } from './tts/types';
 interface AppProps {
   mpdHost?: string;
   mpdPort?: number;
-  aiProvider?: 'openrouter' | 'ollama' | 'anthropic';
+  aiProvider?: 'openrouter' | 'ollama' | 'anthropic' | 'copilot';
   aiApiKey?: string;
   aiModel?: string;
   aiBaseURL?: string;
