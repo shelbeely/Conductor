@@ -271,7 +271,7 @@ GOOGLE_TTS_LANGUAGE=en-US
 
 #### Qwen3 TTS (Alibaba Cloud DashScope)
 
-**Best for:** Multi-language support, Chinese language, voice cloning
+**Best for:** Multi-language support, Chinese language, voice cloning with custom voices
 
 **Configuration:**
 ```bash
@@ -280,15 +280,56 @@ TTS_ENABLED=true
 DASHSCOPE_API_KEY=your_api_key
 QWEN_TTS_VOICE=Cherry
 QWEN_TTS_MODEL=qwen3-tts-flash
+QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
 ```
 
-**Available voices:** Cherry (female), Ethan (male), and others in 10+ languages
+**Voice Cloning Setup:**
+```bash
+# Map custom cloned voices to DJ hosts
+QWEN_CUSTOM_VOICES='{"Host 1": "my_custom_male_voice", "Host 2": "my_custom_female_voice"}'
+```
+
+**Available preset voices:** Cherry (female), Ethan (male), and others in 10+ languages
+
+**Voice Cloning Features:**
+- **Quick enrollment**: Clone any voice with just 3-20 seconds of audio
+- **Multiple custom voices**: Support unlimited custom voice IDs for different speakers
+- **High quality**: Preserves speaker characteristics and acoustic environment
+- **Multi-language**: Cloned voices work across all 10+ supported languages
+- **Voice design**: Create voices by text description (age, gender, tone, character)
+
+**How to clone a voice:**
+1. Record 10-60 seconds of high-quality audio (WAV, MP3, M4A)
+2. Use the `enrollVoice()` API to register the voice with a custom ID
+3. Configure `QWEN_CUSTOM_VOICES` to map speakers to custom voice IDs
+4. DJ hosts will automatically use your custom voices
+
+**Example workflow:**
+```typescript
+// Enroll a custom voice
+const qwen = new QwenTTS(config);
+await qwen.enrollVoice(
+  '/path/to/audio.wav',
+  'my_custom_male_voice',
+  'en',
+  'John Doe voice clone'
+);
+
+// List enrolled voices
+const voices = await qwen.listCustomVoices();
+
+// Configure for DJ use
+qwen.setCustomVoice('Host 1', 'my_custom_male_voice');
+qwen.setCustomVoice('Host 2', 'my_custom_female_voice');
+```
 
 **Pros:**
 - Supports 10+ languages including Chinese, English, Japanese
 - High quality neural voices
 - Fast synthesis (97ms latency claimed)
-- Voice cloning capabilities
+- **Advanced voice cloning with 3-20 second samples**
+- **Multiple custom voices support for dialogue**
+- Voice design via text descriptions
 - Open-source models available for local deployment
 
 **Cons:**
@@ -299,7 +340,7 @@ QWEN_TTS_MODEL=qwen3-tts-flash
 
 **Pricing:** Pay-as-you-go pricing, competitive with other cloud providers
 
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented (including voice cloning)
 
 ### Choosing a TTS provider
 

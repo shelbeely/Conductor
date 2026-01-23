@@ -30,6 +30,8 @@ export interface TTSConfig {
   qwenApiKey?: string;
   qwenVoice?: string;
   qwenModel?: string;
+  qwenCustomVoices?: Record<string, string>;  // Map speaker names to custom voice IDs
+  qwenVoiceCloneModel?: string;  // Model for voice cloning
   
   // Audio playback
   audioPlayer?: 'aplay' | 'mpg123' | 'sox' | 'ffplay';

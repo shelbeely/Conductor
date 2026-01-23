@@ -808,17 +808,65 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
   QWEN_TTS_MODEL=qwen3-tts-flash
   ```
 
+#### `QWEN_TTS_VOICE_CLONE_MODEL`
+- **Type:** String
+- **Default:** `qwen3-tts-vc-realtime-2025-11-27`
+- **Description:** Model to use for voice cloning synthesis
+- **Example:**
+  ```bash
+  QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+  ```
+
+#### `QWEN_CUSTOM_VOICES`
+- **Type:** JSON String (Record<string, string>)
+- **Default:** `{}`
+- **Description:** Map speaker names to custom voice IDs for cloned voices
+- **Format:** JSON object mapping speaker names to enrolled custom voice IDs
+- **Example:**
+  ```bash
+  # Map DJ hosts to custom cloned voices
+  QWEN_CUSTOM_VOICES='{"Host 1": "my_male_voice_id", "Host 2": "my_female_voice_id"}'
+  
+  # Or use custom speaker names
+  QWEN_CUSTOM_VOICES='{"John": "johns_voice", "Sarah": "sarahs_voice"}'
+  ```
+
+**Voice Cloning Workflow:**
+
+1. **Enroll a custom voice:**
+   - Prepare audio sample (10-60 seconds, WAV/MP3/M4A, minimum 24kHz)
+   - Call `enrollVoice()` API with audio file path and custom voice ID
+   - Voice is registered with Alibaba Cloud DashScope
+
+2. **Configure custom voices:**
+   - Set `QWEN_CUSTOM_VOICES` environment variable with speaker-to-voice mapping
+   - Or use `setCustomVoice()` method programmatically
+
+3. **Use in dialogue:**
+   - When synthesizing dialogue, Qwen TTS checks for custom voices first
+   - Falls back to preset voices (Cherry, Ethan) if no custom voice configured
+   - Supports unlimited custom voices for different speakers
+
+**Voice Cloning API Methods:**
+- `enrollVoice(audioPath, voiceId, language, description)` - Register a new voice
+- `listCustomVoices()` - Get list of enrolled voices
+- `setCustomVoice(speaker, voiceId)` - Map speaker to custom voice
+- `getCustomVoice(speaker)` - Get custom voice for speaker
+- `getCustomVoices()` - Get all custom voice mappings
+
 **Qwen3 TTS details:**
 - **Quality:** High quality neural voices
 - **Latency:** Very fast (97ms claimed)
 - **Format:** MP3 audio files (downloaded from URL)
 - **Cost:** Pay-as-you-go pricing (competitive)
-- **Multi-voice:** Yes - multiple voices per language
+- **Multi-voice:** Yes - multiple voices per language + unlimited custom voices
 - **Languages:** 10+ including Chinese, English, Japanese, Korean, etc.
 - **Offline:** Cloud by default, but open-source models available for local deployment
 - **Privacy:** Cloud-based (audio sent to Alibaba Cloud)
-- **Voice cloning:** Available with certain models
+- **Voice cloning:** ✅ Full support with 3-20 second audio samples
+- **Voice design:** Create voices via text descriptions
 - **API endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/tts/synthesis`
+- **Voice enrollment endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-enrollment`
 - **Open source:** Models available at https://github.com/QwenLM/Qwen3-TTS
 
 ### Audio Playback Configuration
@@ -993,7 +1041,34 @@ TTS_AUDIO_PLAYER=mpg123
 TTS_CACHE_DIR=/tmp/conductor-tts
 ```
 
-#### Example 6: TTS Disabled
+#### Example 6: Qwen3 TTS with Voice Cloning
+```bash
+# Enable TTS with Qwen3 and custom cloned voices
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+
+# Configure voice cloning model
+QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+
+# Map DJ hosts to custom cloned voices
+# After enrolling voices via API, set the custom voice IDs here
+QWEN_CUSTOM_VOICES='{"Host 1": "johns_voice_id", "Host 2": "sarahs_voice_id"}'
+
+# Fallback to preset voice if custom voice not available
+QWEN_TTS_VOICE=Cherry
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 7: TTS Disabled
 ```bash
 # Disable all TTS features
 TTS_ENABLED=false
@@ -1010,11 +1085,13 @@ AI_DJ_ENABLED=false
 | **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M | Pay-as-you-go |
 | **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms | ~100ms |
 | **Offline** | No | Yes | No | No | No (models available) |
-| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (10+ langs) |
+| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (unlimited custom) |
 | **Setup** | API key only | Install + models | API key | Google Cloud | DashScope API |
 | **Privacy** | Cloud | Local | Cloud | Cloud | Cloud |
 | **Languages** | English focus | 50+ | English focus | 40+ | 10+ (Chinese focus) |
-| **Voice cloning** | No | No | Yes | No | Yes |
+| **Voice cloning** | No | No | Yes | No | **Yes (3-20s samples)** |
+| **Custom voices** | No | No | Limited | No | **Unlimited** |
+| **Voice design** | No | No | No | No | **Yes (text-based)** |
 | **Status** | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented |
 
 ### TTS Troubleshooting
