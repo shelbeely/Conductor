@@ -678,6 +678,149 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
 - **Offline:** Yes - fully local, no network needed
 - **Privacy:** Complete - nothing sent to cloud
 
+### ElevenLabs TTS Configuration
+
+**Best for:** Premium quality, most expressive voices, voice cloning
+
+#### `ELEVENLABS_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using ElevenLabs)
+- **Description:** ElevenLabs API key for TTS synthesis
+- **How to get:** Sign up at https://elevenlabs.io and get your key from the dashboard
+- **Example:**
+  ```bash
+  ELEVENLABS_API_KEY=your_api_key_here
+  ```
+
+#### `ELEVENLABS_VOICE_ID`
+- **Type:** String
+- **Default:** `pNInz6obpgDQGcFmaJgB` (Adam voice)
+- **Description:** Voice ID to use for TTS
+- **Popular voices:**
+  - `pNInz6obpgDQGcFmaJgB` - Adam (male)
+  - `21m00Tcm4TlvDq8ikWAM` - Rachel (female)
+  - `EXAVITQu4vr4xnSDxMaL` - Bella (female)
+  - `ErXwobaYiN019PkySvjV` - Antoni (male)
+- **Example:**
+  ```bash
+  ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM  # Rachel voice
+  ```
+
+**ElevenLabs TTS details:**
+- **Quality:** Excellent - most natural and expressive
+- **Latency:** 300-800ms for synthesis
+- **Format:** MP3 audio files
+- **Cost:** Free tier 10k chars/month, paid plans from $5/month
+- **Multi-voice:** Yes - perfect for DJ dialogue (Adam + Rachel)
+- **Offline:** No - requires internet connection
+- **Privacy:** Cloud-based (audio sent to ElevenLabs)
+- **API endpoint:** `https://api.elevenlabs.io/v1/text-to-speech/{voice_id}`
+
+### Google Cloud TTS Configuration
+
+**Best for:** Multi-language support, generous free tier, high quality
+
+#### `GOOGLE_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using Google Cloud TTS)
+- **Description:** Google Cloud API key with Text-to-Speech API enabled
+- **How to get:** 
+  1. Create project at https://console.cloud.google.com
+  2. Enable Text-to-Speech API
+  3. Create API key
+- **Example:**
+  ```bash
+  GOOGLE_API_KEY=your_api_key_here
+  ```
+
+#### `GOOGLE_TTS_VOICE`
+- **Type:** String
+- **Default:** `en-US-Neural2-D`
+- **Description:** Voice name to use for TTS
+- **Popular voices:**
+  - `en-US-Neural2-D` - Male voice (used for DJ Host 1)
+  - `en-US-Neural2-F` - Female voice (used for DJ Host 2)
+  - `en-US-Wavenet-A` - Female voice (WaveNet quality)
+  - `en-US-Wavenet-D` - Male voice (WaveNet quality)
+- **Example:**
+  ```bash
+  GOOGLE_TTS_VOICE=en-US-Neural2-D
+  ```
+
+#### `GOOGLE_TTS_LANGUAGE`
+- **Type:** String
+- **Default:** `en-US`
+- **Description:** Language code for TTS
+- **Examples:**
+  ```bash
+  GOOGLE_TTS_LANGUAGE=en-US  # US English
+  GOOGLE_TTS_LANGUAGE=en-GB  # British English
+  GOOGLE_TTS_LANGUAGE=es-ES  # Spanish
+  GOOGLE_TTS_LANGUAGE=ja-JP  # Japanese
+  ```
+
+**Google Cloud TTS details:**
+- **Quality:** Very high - Neural2 and WaveNet voices
+- **Latency:** 200-400ms for synthesis
+- **Format:** MP3 audio files (base64 encoded in API response)
+- **Cost:** Free tier 1M chars/month, then $4-16 per 1M chars
+- **Multi-voice:** Yes - 220+ voices in 40+ languages
+- **Offline:** No - requires internet connection
+- **Privacy:** Cloud-based (audio sent to Google)
+- **API endpoint:** `https://texttospeech.googleapis.com/v1/text:synthesize`
+
+### Qwen3 TTS Configuration
+
+**Best for:** Chinese language, multi-language support, voice cloning, open-source option
+
+#### `DASHSCOPE_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using Qwen3 TTS)
+- **Description:** Alibaba Cloud DashScope API key for Qwen3 TTS
+- **How to get:** Sign up at https://dashscope.aliyun.com
+- **Example:**
+  ```bash
+  DASHSCOPE_API_KEY=your_api_key_here
+  ```
+
+#### `QWEN_TTS_VOICE`
+- **Type:** String
+- **Default:** `Cherry`
+- **Description:** Voice name to use for TTS
+- **Available voices:**
+  - `Cherry` - Female voice (used for DJ Host 2)
+  - `Ethan` - Male voice (used for DJ Host 1)
+  - And others depending on language
+- **Example:**
+  ```bash
+  QWEN_TTS_VOICE=Cherry
+  ```
+
+#### `QWEN_TTS_MODEL`
+- **Type:** String
+- **Default:** `qwen3-tts-flash`
+- **Description:** Model to use for TTS synthesis
+- **Options:**
+  - `qwen3-tts-flash` - Fast synthesis, good quality
+  - `qwen3-tts-turbo` - Faster synthesis, balanced quality
+- **Example:**
+  ```bash
+  QWEN_TTS_MODEL=qwen3-tts-flash
+  ```
+
+**Qwen3 TTS details:**
+- **Quality:** High quality neural voices
+- **Latency:** Very fast (97ms claimed)
+- **Format:** MP3 audio files (downloaded from URL)
+- **Cost:** Pay-as-you-go pricing (competitive)
+- **Multi-voice:** Yes - multiple voices per language
+- **Languages:** 10+ including Chinese, English, Japanese, Korean, etc.
+- **Offline:** Cloud by default, but open-source models available for local deployment
+- **Privacy:** Cloud-based (audio sent to Alibaba Cloud)
+- **Voice cloning:** Available with certain models
+- **API endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/tts/synthesis`
+- **Open source:** Models available at https://github.com/QwenLM/Qwen3-TTS
+
 ### Audio Playback Configuration
 
 #### `TTS_AUDIO_PLAYER`
@@ -797,7 +940,60 @@ TTS_AUDIO_PLAYER=aplay
 TTS_CACHE_DIR=/home/user/.cache/conductor/tts
 ```
 
-#### Example 3: TTS Disabled
+#### Example 3: ElevenLabs TTS (Premium Cloud Quality)
+```bash
+# Enable TTS with ElevenLabs
+TTS_ENABLED=true
+TTS_PROVIDER=elevenlabs
+ELEVENLABS_API_KEY=your_api_key_here
+ELEVENLABS_VOICE_ID=pNInz6obpgDQGcFmaJgB  # Adam voice
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 4: Google Cloud TTS (Multi-language)
+```bash
+# Enable TTS with Google Cloud
+TTS_ENABLED=true
+TTS_PROVIDER=google
+GOOGLE_API_KEY=your_api_key_here
+GOOGLE_TTS_VOICE=en-US-Neural2-D
+GOOGLE_TTS_LANGUAGE=en-US
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 5: Qwen3 TTS (Chinese + English)
+```bash
+# Enable TTS with Qwen3
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+QWEN_TTS_VOICE=Cherry
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 6: TTS Disabled
 ```bash
 # Disable all TTS features
 TTS_ENABLED=false
@@ -808,16 +1004,18 @@ AI_DJ_ENABLED=false
 
 ### TTS Provider Comparison
 
-| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS |
-|---------|-----------|-----------|------------|-----------|
-| **Quality** | Very high | Good | Excellent | Very high |
-| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M |
-| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms |
-| **Offline** | No | Yes | No | No |
-| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) |
-| **Setup** | API key only | Install + models | API key | Google Cloud |
-| **Privacy** | Cloud | Local | Cloud | Cloud |
-| **Status** | ✅ Implemented | ✅ Implemented | 🚧 Planned | 🚧 Planned |
+| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS | Qwen3 TTS |
+|---------|-----------|-----------|------------|-----------|-----------|
+| **Quality** | Very high | Good | Excellent | Very high | High |
+| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M | Pay-as-you-go |
+| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms | ~100ms |
+| **Offline** | No | Yes | No | No | No (models available) |
+| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (10+ langs) |
+| **Setup** | API key only | Install + models | API key | Google Cloud | DashScope API |
+| **Privacy** | Cloud | Local | Cloud | Cloud | Cloud |
+| **Languages** | English focus | 50+ | English focus | 40+ | 10+ (Chinese focus) |
+| **Voice cloning** | No | No | Yes | No | Yes |
+| **Status** | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented |
 
 ### TTS Troubleshooting
 

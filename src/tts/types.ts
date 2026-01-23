@@ -2,7 +2,7 @@
  * TTS Module Types
  */
 
-export type TTSProvider = 'piper' | 'openai' | 'elevenlabs' | 'google';
+export type TTSProvider = 'piper' | 'openai' | 'elevenlabs' | 'google' | 'qwen';
 
 export interface TTSConfig {
   provider: TTSProvider;
@@ -24,6 +24,12 @@ export interface TTSConfig {
   // Google settings
   googleApiKey?: string;
   googleVoice?: string;
+  googleLanguageCode?: string;
+  
+  // Qwen settings
+  qwenApiKey?: string;
+  qwenVoice?: string;
+  qwenModel?: string;
   
   // Audio playback
   audioPlayer?: 'aplay' | 'mpg123' | 'sox' | 'ffplay';

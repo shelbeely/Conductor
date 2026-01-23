@@ -237,7 +237,7 @@ ELEVENLABS_VOICE_ID=default
 
 **Pricing:** Free tier 10k chars/month, paid plans start at $5/month
 
-**Status:** Implementation planned but not yet available in Conductor
+**Status:** ✅ Implemented
 
 #### Google Cloud TTS
 
@@ -248,13 +248,16 @@ ELEVENLABS_VOICE_ID=default
 TTS_PROVIDER=google
 TTS_ENABLED=true
 GOOGLE_API_KEY=your_api_key
-GOOGLE_VOICE=en-US-Wavenet-A
+GOOGLE_TTS_VOICE=en-US-Neural2-D
+GOOGLE_TTS_LANGUAGE=en-US
 ```
+
+**Available voices:** 220+ voices in 40+ languages
 
 **Pros:**
 - Generous free tier (1M chars/month)
 - 220+ voices in 40+ languages
-- WaveNet voices very high quality
+- WaveNet and Neural2 voices very high quality
 - SSML support for fine control
 
 **Cons:**
@@ -264,7 +267,39 @@ GOOGLE_VOICE=en-US-Wavenet-A
 
 **Pricing:** Free tier 1M chars/month, then $4-16 per 1M chars
 
-**Status:** Implementation planned but not yet available in Conductor
+**Status:** ✅ Implemented
+
+#### Qwen3 TTS (Alibaba Cloud DashScope)
+
+**Best for:** Multi-language support, Chinese language, voice cloning
+
+**Configuration:**
+```bash
+TTS_PROVIDER=qwen
+TTS_ENABLED=true
+DASHSCOPE_API_KEY=your_api_key
+QWEN_TTS_VOICE=Cherry
+QWEN_TTS_MODEL=qwen3-tts-flash
+```
+
+**Available voices:** Cherry (female), Ethan (male), and others in 10+ languages
+
+**Pros:**
+- Supports 10+ languages including Chinese, English, Japanese
+- High quality neural voices
+- Fast synthesis (97ms latency claimed)
+- Voice cloning capabilities
+- Open-source models available for local deployment
+
+**Cons:**
+- Requires Alibaba Cloud account
+- Less known than OpenAI/Google
+- Documentation primarily in Chinese
+- API availability may vary by region
+
+**Pricing:** Pay-as-you-go pricing, competitive with other cloud providers
+
+**Status:** ✅ Implemented
 
 ### Choosing a TTS provider
 
@@ -275,6 +310,10 @@ GOOGLE_VOICE=en-US-Wavenet-A
 **For maximum privacy:** Use **Piper** with **Ollama** (100% local, zero network)
 
 **For professional use:** Consider **ElevenLabs** (highest quality, most expressive)
+
+**For multi-language support:** Use **Google Cloud TTS** (220+ voices, 40+ languages)
+
+**For Chinese language:** Use **Qwen3 TTS** (native Chinese support, voice cloning)
 
 ### Voice assignment
 
