@@ -850,10 +850,6 @@ Host 2: Yeah, the whole band was exhausted but it just worked.`;
           </Text>
         )}
       </Box>
-            🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
-          </Text>
-        )}
-      </Box>
     </Box>
   );
 };
