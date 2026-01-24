@@ -3,6 +3,7 @@
 /**
  * Interactive Setup Wizard for Conductor
  * Guides users through installing and configuring required dependencies
+ * Designed to be fun, engaging, and neurodivergent-friendly
  */
 
 import { exec, spawn } from 'child_process';
@@ -13,6 +14,80 @@ import path from 'path';
 import readline from 'readline';
 
 const execAsync = promisify(exec);
+
+// ASCII Art and Visual Elements
+const ASCII_ART = {
+  logo: `
+    ♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸
+    
+       ██████╗ ██████╗ ███╗   ██╗██████╗ 
+      ██╔════╝██╔═══██╗████╗  ██║██╔══██╗
+      ██║     ██║   ██║██╔██╗ ██║██║  ██║
+      ██║     ██║   ██║██║╚██╗██║██║  ██║
+      ╚██████╗╚██████╔╝██║ ╚████║██████╔╝
+       ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
+      
+       ██╗   ██╗ ██████╗████████╗ ██████╗ ██████╗ 
+       ██║   ██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
+       ██║   ██║██║        ██║   ██║   ██║██████╔╝
+       ██║   ██║██║        ██║   ██║   ██║██╔══██╗
+       ╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║
+        ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+    
+    ♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸♪♫•*¨*•.¸¸
+  `,
+  music: `
+      ♪ ♫ ♪ ♫
+     ♫ ♪ ♫ ♪ ♫
+    ♪ ♫ ♪ ♫ ♪ ♫
+  `,
+  robot: `
+     ╔═══╗
+     ║ ◉ ║  Hi! I'm here to help!
+     ╚═══╝
+      ║ ║
+     ╔═══╗
+  `,
+  checkmark: '✓',
+  crossmark: '✗',
+  arrow: '→',
+  star: '★',
+  loading: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+  progress: ['▱▱▱▱▱', '▰▱▱▱▱', '▰▰▱▱▱', '▰▰▰▱▱', '▰▰▰▰▱', '▰▰▰▰▰'],
+  celebration: `
+    ✨ 🎉 ✨ 🎊 ✨ 🎉 ✨
+       🎵 SUCCESS! 🎵
+    ✨ 🎊 ✨ 🎉 ✨ 🎊 ✨
+  `,
+};
+
+// Color codes for terminal
+const COLORS = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  cyan: '\x1b[36m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+  magenta: '\x1b[35m',
+  blue: '\x1b[34m',
+  bgCyan: '\x1b[46m',
+  bgGreen: '\x1b[42m',
+};
+
+interface ComponentState {
+  installed: boolean;
+  configured: boolean;
+  lastInstalled?: string;
+}
+
+interface SetupState {
+  mpd: ComponentState;
+  ollama: ComponentState;
+  bark: ComponentState;
+  ueberzug: ComponentState;
+}
 
 interface SetupStep {
   name: string;
@@ -25,12 +100,278 @@ interface SetupStep {
 class SetupWizard {
   private rl: readline.Interface;
   private envConfig: Record<string, string> = {};
+  private stateFile: string;
+  private state: SetupState;
+  private loadingInterval?: NodeJS.Timeout;
 
   constructor() {
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
+    this.stateFile = path.join(process.cwd(), '.conductor-setup-state.json');
+    this.state = this.loadState();
+  }
+
+  private loadState(): SetupState {
+    if (existsSync(this.stateFile)) {
+      try {
+        return JSON.parse(readFileSync(this.stateFile, 'utf-8'));
+      } catch (error) {
+        // Invalid state file, start fresh
+      }
+    }
+    return {
+      mpd: { installed: false, configured: false },
+      ollama: { installed: false, configured: false },
+      bark: { installed: false, configured: false },
+      ueberzug: { installed: false, configured: false },
+    };
+  }
+
+  private saveState(): void {
+    writeFileSync(this.stateFile, JSON.stringify(this.state, null, 2));
+  }
+
+  // Animation helpers
+  private async showLoadingAnimation(message: string, durationMs: number = 2000): Promise<void> {
+    return new Promise((resolve) => {
+      let i = 0;
+      process.stdout.write(`\n${COLORS.cyan}`);
+      
+      this.loadingInterval = setInterval(() => {
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(`${ASCII_ART.loading[i % ASCII_ART.loading.length]} ${message}`);
+        i++;
+      }, 80);
+
+      setTimeout(() => {
+        if (this.loadingInterval) clearInterval(this.loadingInterval);
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(`${COLORS.reset}`);
+        resolve();
+      }, durationMs);
+    });
+  }
+
+  private async showProgressBar(steps: string[], delayMs: number = 500): Promise<void> {
+    for (let i = 0; i < ASCII_ART.progress.length; i++) {
+      readline.clearLine(process.stdout, 0);
+      readline.cursorTo(process.stdout, 0);
+      const step = steps[i] || steps[steps.length - 1];
+      process.stdout.write(`${COLORS.green}${ASCII_ART.progress[i]}${COLORS.reset} ${step}`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    process.stdout.write('\n');
+  }
+
+  private colorText(text: string, color: keyof typeof COLORS): string {
+    return `${COLORS[color]}${text}${COLORS.reset}`;
+  }
+
+  private async typeWriter(text: string, delayMs: number = 30): Promise<void> {
+    for (const char of text) {
+      process.stdout.write(char);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    process.stdout.write('\n');
+  }
+
+  private drawBox(title: string, content: string[], width: number = 60): void {
+    const topBorder = '╔' + '═'.repeat(width - 2) + '╗';
+    const bottomBorder = '╚' + '═'.repeat(width - 2) + '╝';
+    const emptyLine = '║' + ' '.repeat(width - 2) + '║';
+    
+    console.log(this.colorText(topBorder, 'cyan'));
+    
+    // Title
+    const titlePadding = Math.floor((width - 2 - title.length) / 2);
+    const titleLine = '║' + ' '.repeat(titlePadding) + this.colorText(title, 'bright') + ' '.repeat(width - 2 - titlePadding - title.length) + '║';
+    console.log(titleLine);
+    console.log(this.colorText(emptyLine, 'cyan'));
+    
+    // Content
+    content.forEach(line => {
+      const padding = width - 4 - line.replace(/\x1b\[[0-9;]*m/g, '').length; // Account for color codes
+      const contentLine = '║  ' + line + ' '.repeat(Math.max(0, padding)) + '║';
+      console.log(this.colorText('║  ', 'cyan') + line + ' '.repeat(Math.max(0, padding)) + this.colorText('║', 'cyan'));
+    });
+    
+    console.log(this.colorText(emptyLine, 'cyan'));
+    console.log(this.colorText(bottomBorder, 'cyan'));
+  }
+
+  private async showMainMenu(): Promise<'install' | 'uninstall' | 'quit'> {
+    console.clear();
+    console.log(this.colorText(ASCII_ART.logo, 'cyan'));
+    
+    await this.showLoadingAnimation('Starting setup wizard...', 1000);
+    
+    console.log('\n');
+    console.log(ASCII_ART.robot);
+    console.log('');
+    
+    this.drawBox('🎵 WELCOME TO CONDUCTOR SETUP! 🎵', [
+      'I\'m your friendly setup assistant!',
+      '',
+      'This wizard will help you:',
+      `${ASCII_ART.star} Install music player (MPD)`,
+      `${ASCII_ART.star} Set up AI features (Ollama)`,
+      `${ASCII_ART.star} Add DJ voices (Bark TTS)`,
+      `${ASCII_ART.star} Enable album art (Überzug++)`,
+      '',
+      this.colorText('✨ Designed to be neurodivergent-friendly! ✨', 'magenta'),
+    ]);
+
+    console.log('\n' + this.colorText('━━━ MAIN MENU ━━━', 'bright') + '\n');
+    console.log(`  ${this.colorText('1', 'green')}. ${ASCII_ART.checkmark} Install/Configure components`);
+    console.log(`  ${this.colorText('2', 'red')}. ${ASCII_ART.crossmark} Uninstall components`);
+    console.log(`  ${this.colorText('Q', 'yellow')}. Exit wizard\n`);
+
+    const choice = await this.question(this.colorText('Choose an option (1, 2, or Q): ', 'cyan'));
+
+    if (choice.toLowerCase() === 'q') {
+      return 'quit';
+    } else if (choice === '1') {
+      return 'install';
+    } else if (choice === '2') {
+      return 'uninstall';
+    } else {
+      console.log(this.colorText('\n⚠ Oops! That\'s not a valid option. Let\'s try again! ⚠\n', 'yellow'));
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return this.showMainMenu();
+    }
+  }
+
+  private async selectComponents(mode: 'install' | 'uninstall'): Promise<Set<string>> {
+    console.clear();
+    const actionVerb = mode === 'install' ? 'install' : 'uninstall';
+    const emoji = mode === 'install' ? '📦' : '🗑️';
+    
+    console.log(this.colorText(`\n━━━ ${emoji} COMPONENT SELECTION (${actionVerb.toUpperCase()}) ${emoji} ━━━\n`, 'bright'));
+    
+    const components = [
+      {
+        key: 'mpd',
+        name: 'MPD (Music Player Daemon)',
+        emoji: '🎵',
+        description: 'Plays your music files',
+        required: true,
+        status: this.state.mpd.installed ? this.colorText('✓ Installed', 'green') : this.colorText('✗ Not installed', 'dim'),
+        canUninstall: this.state.mpd.installed && mode === 'uninstall',
+      },
+      {
+        key: 'ollama',
+        name: 'Ollama (Local AI)',
+        emoji: '🤖',
+        description: 'Free local AI for natural language control',
+        required: false,
+        status: this.state.ollama.installed ? this.colorText('✓ Installed', 'green') : this.colorText('✗ Not installed', 'dim'),
+        canUninstall: this.state.ollama.installed && mode === 'uninstall',
+      },
+      {
+        key: 'bark',
+        name: 'Bark TTS',
+        emoji: '🗣️',
+        description: 'AI DJ hosts with non-verbal sounds (laughs, sighs)',
+        required: false,
+        status: this.state.bark.installed ? this.colorText('✓ Installed', 'green') : this.colorText('✗ Not installed', 'dim'),
+        canUninstall: this.state.bark.installed && mode === 'uninstall',
+      },
+      {
+        key: 'ueberzug',
+        name: 'Überzug++',
+        emoji: '🖼️',
+        description: 'Album art display in terminal',
+        required: false,
+        status: this.state.ueberzug.installed ? this.colorText('✓ Installed', 'green') : this.colorText('✗ Not installed', 'dim'),
+        canUninstall: this.state.ueberzug.installed && mode === 'uninstall',
+      },
+    ];
+
+    // Filter components based on mode
+    const availableComponents = mode === 'uninstall' 
+      ? components.filter(c => c.canUninstall)
+      : components;
+
+    if (mode === 'uninstall' && availableComponents.length === 0) {
+      this.drawBox('ℹ️ INFO', [
+        'No components are installed to uninstall.',
+        '',
+        'Press Enter to return to the main menu.'
+      ]);
+      await this.question('');
+      return new Set();
+    }
+
+    this.drawBox(`Select components to ${actionVerb}:`, 
+      availableComponents.map((comp, idx) => {
+        const required = comp.required && mode === 'install' ? this.colorText('(Required)', 'yellow') : mode === 'install' ? this.colorText('(Optional)', 'dim') : '';
+        return `${this.colorText((idx + 1).toString(), 'cyan')}. ${comp.emoji} ${comp.name} ${required}\n   [${comp.status}] ${comp.description}`;
+      }).concat([
+        '',
+        mode === 'install' 
+          ? `${this.colorText('A', 'green')}. ✨ Install ALL optional components`
+          : `${this.colorText('A', 'red')}. 🗑️ Uninstall ALL components`,
+        `${this.colorText('Q', 'yellow')}. ← Go back to main menu`
+      ])
+    );
+
+    const selected = new Set<string>();
+
+    if (mode === 'install') {
+      // Always include MPD since it's required
+      selected.add('mpd');
+    }
+
+    const choice = await this.question(this.colorText('\nEnter numbers (e.g., "1 2 4") or "A" for all, "Q" to go back: ', 'cyan'));
+
+    if (choice.toLowerCase() === 'q') {
+      return new Set();
+    }
+
+    if (choice.toLowerCase() === 'a') {
+      // Select all
+      availableComponents.forEach(comp => selected.add(comp.key));
+    } else {
+      // Parse individual selections
+      const numbers = choice.split(/[\s,]+/).map(n => parseInt(n.trim()));
+      numbers.forEach(num => {
+        if (num >= 1 && num <= availableComponents.length) {
+          selected.add(availableComponents[num - 1].key);
+        }
+      });
+    }
+
+    if (selected.size === 0) {
+      console.log(this.colorText('\n⚠ No components selected.\n', 'yellow'));
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return new Set();
+    }
+
+    // Confirm selection with visual feedback
+    console.log('\n' + this.colorText('━━━ YOUR SELECTION ━━━', 'bright') + '\n');
+    availableComponents.forEach(comp => {
+      if (selected.has(comp.key)) {
+        console.log(`  ${mode === 'install' ? this.colorText('✓', 'green') : this.colorText('✗', 'red')} ${comp.emoji} ${comp.name}`);
+      }
+    });
+    console.log('');
+
+    const confirmPrompt = mode === 'install' 
+      ? this.colorText('🚀 Ready to install? (y/n): ', 'green')
+      : this.colorText('⚠️ Ready to uninstall? (y/n): ', 'red');
+    
+    const confirm = await this.confirm(confirmPrompt.replace(' (y/n): ', ''));
+    if (!confirm) {
+      console.log(this.colorText('\n✋ Selection cancelled.\n', 'yellow'));
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return new Set();
+    }
+
+    return selected;
   }
 
   private async question(prompt: string): Promise<string> {
@@ -46,12 +387,13 @@ class SetupWizard {
 
   private log(message: string, type: 'info' | 'success' | 'error' | 'warn' = 'info') {
     const icons = {
-      info: 'ℹ',
-      success: '✓',
-      error: '✗',
-      warn: '⚠',
+      info: { symbol: 'ℹ', color: 'cyan' as keyof typeof COLORS },
+      success: { symbol: '✓', color: 'green' as keyof typeof COLORS },
+      error: { symbol: '✗', color: 'red' as keyof typeof COLORS },
+      warn: { symbol: '⚠', color: 'yellow' as keyof typeof COLORS },
     };
-    console.log(`${icons[type]} ${message}`);
+    const icon = icons[type];
+    console.log(`${this.colorText(icon.symbol, icon.color)} ${message}`);
   }
 
   private async detectOS(): Promise<'linux' | 'macos' | 'unknown'> {
@@ -226,6 +568,61 @@ port               "6600"
 
     this.envConfig['MPD_HOST'] = 'localhost';
     this.envConfig['MPD_PORT'] = '6600';
+    
+    this.state.mpd.installed = true;
+    this.state.mpd.configured = true;
+    this.state.mpd.lastInstalled = new Date().toISOString();
+    this.saveState();
+  }
+
+  private async uninstallMPD(): Promise<void> {
+    this.log('Uninstalling MPD (Music Player Daemon)...', 'info');
+
+    const os = await this.detectOS();
+    
+    // Stop MPD service
+    try {
+      if (os === 'linux') {
+        await execAsync('systemctl --user stop mpd 2>/dev/null || true');
+        await execAsync('systemctl --user disable mpd 2>/dev/null || true');
+      }
+      await execAsync('killall mpd 2>/dev/null || true');
+      this.log('MPD service stopped', 'success');
+    } catch (error) {
+      // Ignore errors
+    }
+
+    const pm = await this.detectPackageManager();
+
+    // Uninstall package
+    try {
+      if (pm === 'apt') {
+        await this.runCommand('sudo apt-get remove -y mpd mpc', 'Uninstalling MPD...');
+      } else if (pm === 'pacman') {
+        await this.runCommand('sudo pacman -R --noconfirm mpd mpc', 'Uninstalling MPD...');
+      } else if (pm === 'brew') {
+        await this.runCommand('brew uninstall mpd mpc', 'Uninstalling MPD...');
+      }
+      this.log('MPD uninstalled', 'success');
+    } catch (error) {
+      this.log('Failed to uninstall MPD. You may need to uninstall manually.', 'warn');
+    }
+
+    // Ask if user wants to remove config
+    const removeConfig = await this.confirm('Remove MPD configuration and database?');
+    if (removeConfig) {
+      const configDir = path.join(homedir(), '.config', 'mpd');
+      try {
+        await this.runCommand(`rm -rf ${configDir}`, 'Removing configuration...');
+        this.log('MPD configuration removed', 'success');
+      } catch (error) {
+        this.log('Failed to remove configuration directory', 'warn');
+      }
+    }
+
+    this.state.mpd.installed = false;
+    this.state.mpd.configured = false;
+    this.saveState();
   }
 
   private async setupOllama(): Promise<void> {
@@ -284,6 +681,60 @@ port               "6600"
     } else {
       this.log('Skipping model installation. You can run "ollama pull <model>" later.', 'warn');
     }
+
+    this.state.ollama.installed = true;
+    this.state.ollama.configured = true;
+    this.state.ollama.lastInstalled = new Date().toISOString();
+    this.saveState();
+  }
+
+  private async uninstallOllama(): Promise<void> {
+    this.log('Uninstalling Ollama (Local AI)...', 'info');
+
+    // Stop Ollama service
+    try {
+      await execAsync('killall ollama 2>/dev/null || true');
+      this.log('Ollama service stopped', 'success');
+    } catch (error) {
+      // Ignore
+    }
+
+    // Uninstall Ollama
+    try {
+      const os = await this.detectOS();
+      if (os === 'linux') {
+        const pm = await this.detectPackageManager();
+        if (pm === 'apt' || pm === 'pacman') {
+          // Ollama doesn't have a package manager install on Linux, it's installed via script
+          await this.runCommand('sudo rm -f /usr/local/bin/ollama /usr/bin/ollama', 'Removing Ollama binary...');
+          await this.runCommand('sudo rm -rf /usr/share/ollama', 'Removing Ollama data...');
+        }
+      } else if (os === 'macos') {
+        const pm = await this.detectPackageManager();
+        if (pm === 'brew') {
+          await this.runCommand('brew uninstall ollama', 'Uninstalling Ollama...');
+        }
+      }
+      this.log('Ollama uninstalled', 'success');
+    } catch (error) {
+      this.log('Failed to uninstall Ollama. You may need to uninstall manually.', 'warn');
+    }
+
+    // Ask if user wants to remove models
+    const removeModels = await this.confirm('Remove downloaded Ollama models (~4-5GB)?');
+    if (removeModels) {
+      const modelsDir = path.join(homedir(), '.ollama');
+      try {
+        await this.runCommand(`rm -rf ${modelsDir}`, 'Removing models...');
+        this.log('Ollama models removed', 'success');
+      } catch (error) {
+        this.log('Failed to remove models directory', 'warn');
+      }
+    }
+
+    this.state.ollama.installed = false;
+    this.state.ollama.configured = false;
+    this.saveState();
   }
 
   private async setupBarkTTS(): Promise<void> {
@@ -326,10 +777,43 @@ port               "6600"
       this.envConfig['TTS_PROVIDER'] = 'bark';
       this.envConfig['BARK_VOICE'] = 'v2/en_speaker_6';
       this.envConfig['BARK_ENABLE_NONVERBAL'] = 'true';
+      
+      this.state.bark.installed = true;
+      this.state.bark.configured = true;
+      this.state.bark.lastInstalled = new Date().toISOString();
+      this.saveState();
     } catch (error) {
       this.log('Failed to install Bark TTS. You can install it manually later:', 'error');
       this.log('pip3 install git+https://github.com/suno-ai/bark.git scipy', 'info');
     }
+  }
+
+  private async uninstallBarkTTS(): Promise<void> {
+    this.log('Uninstalling Bark TTS...', 'info');
+
+    try {
+      await this.runCommand('pip3 uninstall -y bark scipy', 'Uninstalling Bark...');
+      this.log('Bark TTS uninstalled', 'success');
+    } catch (error) {
+      this.log('Failed to uninstall Bark TTS. You may need to uninstall manually:', 'warn');
+      this.log('pip3 uninstall bark scipy', 'info');
+    }
+
+    // Ask if user wants to remove models
+    const removeModels = await this.confirm('Remove Bark TTS models (~2GB)?');
+    if (removeModels) {
+      const modelsDir = path.join(homedir(), '.cache', 'suno', 'bark_v0');
+      try {
+        await this.runCommand(`rm -rf ${modelsDir}`, 'Removing models...');
+        this.log('Bark models removed', 'success');
+      } catch (error) {
+        this.log('Failed to remove models directory', 'warn');
+      }
+    }
+
+    this.state.bark.installed = false;
+    this.state.bark.configured = false;
+    this.saveState();
   }
 
   private async setupUeberzug(): Promise<void> {
@@ -392,6 +876,42 @@ port               "6600"
         this.log('Album art will display as ASCII art instead.', 'info');
       }
     }
+
+    if (install) {
+      this.state.ueberzug.installed = true;
+      this.state.ueberzug.configured = true;
+      this.state.ueberzug.lastInstalled = new Date().toISOString();
+      this.saveState();
+    }
+  }
+
+  private async uninstallUeberzug(): Promise<void> {
+    this.log('Uninstalling Überzug++...', 'info');
+
+    const pm = await this.detectPackageManager();
+
+    try {
+      if (pm === 'brew') {
+        await this.runCommand('brew uninstall ueberzug++', 'Uninstalling Überzug++...');
+      } else if (pm === 'pacman') {
+        const aurHelper = await this.checkCommand('yay') ? 'yay' : await this.checkCommand('paru') ? 'paru' : null;
+        if (aurHelper) {
+          await this.runCommand(`${aurHelper} -R --noconfirm ueberzug++`, 'Uninstalling Überzug++...');
+        } else {
+          await this.runCommand('sudo pacman -R --noconfirm ueberzug++', 'Uninstalling Überzug++...');
+        }
+      } else if (pm === 'apt') {
+        // If installed from source, remove binary
+        await this.runCommand('sudo rm -f /usr/local/bin/ueberzug++', 'Removing Überzug++...');
+      }
+      this.log('Überzug++ uninstalled', 'success');
+    } catch (error) {
+      this.log('Failed to uninstall Überzug++. You may need to uninstall manually.', 'warn');
+    }
+
+    this.state.ueberzug.installed = false;
+    this.state.ueberzug.configured = false;
+    this.saveState();
   }
 
   private async setupEnvFile(): Promise<void> {
@@ -421,79 +941,154 @@ port               "6600"
   }
 
   async run(): Promise<void> {
-    console.log('\n╔═══════════════════════════════════════════════════════════╗');
-    console.log('║                                                           ║');
-    console.log('║        🎵  Conductor Setup Wizard  🎵                    ║');
-    console.log('║                                                           ║');
-    console.log('║   Interactive installer for beginner-friendly setup      ║');
-    console.log('║                                                           ║');
-    console.log('╚═══════════════════════════════════════════════════════════╝\n');
-
     try {
-      // Step 1: MPD (Required)
-      console.log('\n━━━ Step 1: Music Player Daemon (MPD) ━━━');
-      console.log('MPD plays your music files and is required for Conductor.');
-      await this.setupMPD();
+      // Show main menu
+      const action = await this.showMainMenu();
 
-      // Step 2: AI Provider (Required)
-      console.log('\n━━━ Step 2: AI Provider ━━━');
-      console.log('Choose between local (Ollama) or cloud (OpenRouter/Anthropic) AI.');
-      console.log('');
-
-      const aiChoice = await this.question(
-        'Install Ollama for local free AI? (y/n - choose n for cloud providers): '
-      );
-
-      if (aiChoice.toLowerCase() === 'y' || aiChoice.toLowerCase() === 'yes') {
-        await this.setupOllama();
-      } else {
-        this.log('Skipping Ollama. You can configure cloud AI providers manually in .env', 'info');
-        this.log('Options: OpenRouter (openrouter.ai) or Anthropic (console.anthropic.com)', 'info');
+      if (action === 'quit') {
+        console.clear();
+        console.log(ASCII_ART.music);
+        console.log(this.colorText('\n👋 Thanks for using Conductor Setup Wizard!', 'cyan'));
+        console.log(this.colorText('   Come back anytime to add more features!\n', 'dim'));
+        this.rl.close();
+        return;
       }
 
-      // Step 3: TTS (Optional)
-      console.log('\n━━━ Step 3: Text-to-Speech (TTS) - Optional ━━━');
-      console.log('Bark TTS enables AI DJ hosts with non-verbal sounds (laughs, sighs, etc.)');
-      const ttsChoice = await this.confirm('Install Bark TTS for AI DJ features?');
+      if (action === 'install') {
+        // Select components to install
+        const selected = await this.selectComponents('install');
 
-      if (ttsChoice) {
-        await this.setupBarkTTS();
-      } else {
-        this.log('Skipping Bark TTS. AI DJ features will be disabled.', 'info');
+        if (selected.size === 0) {
+          await this.run(); // Return to main menu
+          return;
+        }
+
+        console.clear();
+        console.log(this.colorText('\n━━━ 🚀 STARTING INSTALLATION! 🚀 ━━━\n', 'bright'));
+        
+        await this.showProgressBar([
+          'Preparing installation...',
+          'Checking system compatibility...',
+          'Setting up environment...',
+          'Ready to install!',
+          'Let\'s go! 🎉'
+        ], 400);
+
+        // Install selected components with fun messages
+        if (selected.has('mpd')) {
+          console.log(this.colorText('\n━━━ 🎵 Installing MPD ━━━', 'cyan'));
+          console.log(ASCII_ART.music);
+          await this.setupMPD();
+        }
+
+        if (selected.has('ollama')) {
+          console.log(this.colorText('\n━━━ 🤖 Installing Ollama ━━━', 'cyan'));
+          await this.setupOllama();
+        }
+
+        if (selected.has('bark')) {
+          console.log(this.colorText('\n━━━ 🗣️ Installing Bark TTS ━━━', 'cyan'));
+          await this.setupBarkTTS();
+        }
+
+        if (selected.has('ueberzug')) {
+          console.log(this.colorText('\n━━━ 🖼️ Installing Überzug++ ━━━', 'cyan'));
+          await this.setupUeberzug();
+        }
+
+        // Create/update .env file
+        console.log(this.colorText('\n━━━ ⚙️ Saving Configuration ━━━', 'cyan'));
+        await this.showLoadingAnimation('Writing configuration files...', 1500);
+        await this.setupEnvFile();
+
+        // Celebration!
+        console.clear();
+        console.log(this.colorText(ASCII_ART.celebration, 'green'));
+        
+        this.drawBox('🎉 INSTALLATION COMPLETE! 🎉', [
+          this.colorText('Awesome! Your Conductor is ready to rock! 🎸', 'green'),
+          '',
+          this.colorText('NEXT STEPS:', 'bright'),
+          '  1. 📁 Add music files to ~/Music/',
+          '  2. 🚀 Run: ' + this.colorText('bun start', 'cyan') + ' (or npm start)',
+          '  3. 🎤 Try saying: ' + this.colorText('"play some jazz"', 'magenta'),
+          '',
+          this.colorText('Enjoy your music! 🎵✨', 'green'),
+        ]);
+        
+        // Ask if user wants to configure more components
+        console.log('');
+        const configureMore = await this.confirm('Want to add more components?');
+        if (configureMore) {
+          await this.run(); // Restart wizard
+          return;
+        } else {
+          console.log(this.colorText('\n🎵 Happy listening! See you later! 🎵\n', 'cyan'));
+        }
+      } else if (action === 'uninstall') {
+        // Select components to uninstall
+        const selected = await this.selectComponents('uninstall');
+
+        if (selected.size === 0) {
+          await this.run(); // Return to main menu
+          return;
+        }
+
+        console.clear();
+        console.log(this.colorText('\n━━━ 🗑️ STARTING UNINSTALL ━━━\n', 'yellow'));
+
+        // Uninstall selected components
+        if (selected.has('mpd')) {
+          console.log(this.colorText('\n━━━ 🎵 Uninstalling MPD ━━━', 'yellow'));
+          await this.uninstallMPD();
+        }
+
+        if (selected.has('ollama')) {
+          console.log(this.colorText('\n━━━ 🤖 Uninstalling Ollama ━━━', 'yellow'));
+          await this.uninstallOllama();
+        }
+
+        if (selected.has('bark')) {
+          console.log(this.colorText('\n━━━ 🗣️ Uninstalling Bark TTS ━━━', 'yellow'));
+          await this.uninstallBarkTTS();
+        }
+
+        if (selected.has('ueberzug')) {
+          console.log(this.colorText('\n━━━ 🖼️ Uninstalling Überzug++ ━━━', 'yellow'));
+          await this.uninstallUeberzug();
+        }
+
+        // Done!
+        console.log('\n');
+        this.drawBox('✓ UNINSTALL COMPLETE', [
+          'Components have been successfully removed.',
+          '',
+          'Your Conductor configuration has been updated.',
+        ]);
+
+        // Ask if user wants to do more
+        console.log('');
+        const doMore = await this.confirm('Return to main menu?');
+        if (doMore) {
+          await this.run(); // Restart wizard
+          return;
+        }
       }
-
-      // Step 4: Überzug++ (Optional)
-      console.log('\n━━━ Step 4: Album Art Display - Optional ━━━');
-      console.log('Überzug++ shows album covers in the terminal.');
-      const artChoice = await this.confirm('Install Überzug++ for album art?');
-
-      if (artChoice) {
-        await this.setupUeberzug();
-      } else {
-        this.log('Skipping Überzug++. Album art will display as ASCII art.', 'info');
-      }
-
-      // Step 5: Create .env file
-      console.log('\n━━━ Step 5: Configuration File ━━━');
-      await this.setupEnvFile();
-
-      // Done!
-      console.log('\n╔═══════════════════════════════════════════════════════════╗');
-      console.log('║                                                           ║');
-      console.log('║                 ✓  Setup Complete!  ✓                    ║');
-      console.log('║                                                           ║');
-      console.log('╚═══════════════════════════════════════════════════════════╝\n');
-
-      this.log('Next steps:', 'info');
-      console.log('  1. Add music files to ~/Music/');
-      console.log('  2. Run: bun start (or npm start)');
-      console.log('  3. Try: "play some jazz"');
-      console.log('');
-      this.log('Enjoy your music! 🎵', 'success');
     } catch (error) {
-      this.log(`Setup failed: ${error}`, 'error');
-      this.log('You can try running the wizard again or follow the manual setup guide in SETUP.md', 'info');
-      process.exit(1);
+      console.log(this.colorText('\n━━━ ⚠️ OOPS! SOMETHING WENT WRONG ━━━\n', 'red'));
+      this.log(`Error: ${error}`, 'error');
+      console.log('');
+      this.drawBox('💡 TROUBLESHOOTING TIPS', [
+        '• Check your internet connection',
+        '• Make sure you have sufficient permissions',
+        '• Try running the wizard again',
+        '• Check SETUP.md for manual installation',
+      ]);
+      console.log('');
+      const retry = await this.confirm('Want to try again?');
+      if (retry) {
+        await this.run();
+      }
     } finally {
       this.rl.close();
     }
