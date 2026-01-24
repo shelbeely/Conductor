@@ -541,6 +541,793 @@ If ASCII generation fails, album art section shows track text only.
 **Forcing fallback:**
 No way to force ASCII art if Überzug++ is available. To disable Überzug++, uninstall it or modify the code.
 
+## Text-to-Speech (TTS) Configuration
+
+Conductor supports text-to-speech for the AI DJ feature and "Beyond the Beat" track stories. Multiple TTS providers are available, each with different trade-offs.
+
+### TTS Provider Selection
+
+#### `TTS_ENABLED`
+- **Type:** Boolean
+- **Default:** `false`
+- **Description:** Enable or disable text-to-speech features
+- **Examples:**
+  ```bash
+  TTS_ENABLED=true   # Enable TTS
+  TTS_ENABLED=false  # Disable TTS
+  ```
+
+#### `TTS_PROVIDER`
+- **Type:** String (enum)
+- **Options:** `openai`, `piper`, `elevenlabs`, `google`
+- **Default:** `openai`
+- **Description:** Which TTS provider to use for audio generation
+- **Examples:**
+  ```bash
+  TTS_PROVIDER=openai      # Cloud TTS with high quality voices
+  TTS_PROVIDER=piper       # Local TTS, private and free
+  TTS_PROVIDER=elevenlabs  # Premium cloud TTS (planned)
+  TTS_PROVIDER=google      # Google Cloud TTS (planned)
+  ```
+
+### OpenAI TTS Configuration
+
+**Best for:** High-quality dialogue with multiple voices, cloud-based
+
+#### `OPENAI_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using OpenAI TTS)
+- **Description:** OpenAI API key for TTS synthesis
+- **Notes:** If using OpenRouter as AI provider, it may use the same `OPENROUTER_API_KEY`
+- **Example:**
+  ```bash
+  OPENAI_API_KEY=sk-...
+  ```
+
+#### `OPENAI_TTS_VOICE`
+- **Type:** String (enum)
+- **Options:** `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`
+- **Default:** `alloy`
+- **Description:** Voice to use for single-voice TTS
+- **Voice characteristics:**
+  - `alloy` - Neutral, versatile voice
+  - `echo` - Warm male voice (used for DJ Host 1)
+  - `fable` - British accent, expressive
+  - `onyx` - Deep, authoritative male voice
+  - `nova` - Energetic female voice
+  - `shimmer` - Clear female voice (used for DJ Host 2)
+- **Example:**
+  ```bash
+  OPENAI_TTS_VOICE=echo    # Male DJ voice
+  OPENAI_TTS_VOICE=shimmer # Female DJ voice
+  ```
+
+#### `OPENAI_TTS_SPEED`
+- **Type:** Float
+- **Range:** 0.25 to 4.0
+- **Default:** 1.0
+- **Description:** Speech rate multiplier
+- **Examples:**
+  ```bash
+  OPENAI_TTS_SPEED=1.0   # Normal speed
+  OPENAI_TTS_SPEED=1.2   # 20% faster (more energetic)
+  OPENAI_TTS_SPEED=0.9   # 10% slower (more deliberate)
+  ```
+
+**OpenAI TTS details:**
+- **Quality:** Very natural and expressive
+- **Latency:** 200-500ms for synthesis
+- **Format:** MP3 audio files
+- **Cost:** $15 per 1 million characters (~16 hours of audio)
+  - 100 DJ commentaries ≈ 50,000 chars ≈ $0.75
+  - Average usage: $1-3/month
+- **Multi-voice:** Yes - perfect for DJ dialogue with Echo and Shimmer
+- **API endpoint:** `https://api.openai.com/v1/audio/speech`
+
+### Piper TTS Configuration
+
+**Best for:** Offline use, privacy, zero cost
+
+#### `PIPER_PATH`
+- **Type:** String (path)
+- **Default:** `/usr/local/bin/piper` or `piper` (from PATH)
+- **Description:** Full path to Piper executable
+- **Examples:**
+  ```bash
+  PIPER_PATH=/usr/local/bin/piper
+  PIPER_PATH=/home/user/.local/bin/piper
+  PIPER_PATH=piper  # Use from PATH
+  ```
+
+#### `PIPER_MODEL_PATH`
+- **Type:** String (path)
+- **Required:** Yes (when using Piper)
+- **Description:** Full path to Piper voice model (.onnx file)
+- **Examples:**
+  ```bash
+  PIPER_MODEL_PATH=/usr/local/share/piper/voices/en_US-lessac-medium.onnx
+  PIPER_MODEL_PATH=/home/user/.local/share/piper/en_US-amy-low.onnx
+  ```
+
+**Piper installation:**
+```bash
+# Download Piper binary
+wget https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz
+tar -xzf piper_amd64.tar.gz
+sudo mv piper /usr/local/bin/
+
+# Download voice model (example: US English, medium quality)
+mkdir -p ~/.local/share/piper/voices
+cd ~/.local/share/piper/voices
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+**Available Piper voices:**
+- Browse at: https://huggingface.co/rhasspy/piper-voices
+- 50+ languages available
+- Multiple quality levels (low, medium, high)
+- Model sizes: 5-100MB depending on quality
+
+**Piper TTS details:**
+- **Quality:** Natural but slightly synthetic
+- **Latency:** 100-300ms for synthesis
+- **Format:** WAV audio files
+- **Cost:** Free and open source
+- **Multi-voice:** No - uses single voice per model (DJ dialogue uses same voice for both hosts)
+- **Offline:** Yes - fully local, no network needed
+- **Privacy:** Complete - nothing sent to cloud
+
+### ElevenLabs TTS Configuration
+
+**Best for:** Premium quality, most expressive voices, voice cloning
+
+#### `ELEVENLABS_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using ElevenLabs)
+- **Description:** ElevenLabs API key for TTS synthesis
+- **How to get:** Sign up at https://elevenlabs.io and get your key from the dashboard
+- **Example:**
+  ```bash
+  ELEVENLABS_API_KEY=your_api_key_here
+  ```
+
+#### `ELEVENLABS_VOICE_ID`
+- **Type:** String
+- **Default:** `pNInz6obpgDQGcFmaJgB` (Adam voice)
+- **Description:** Voice ID to use for TTS
+- **Popular voices:**
+  - `pNInz6obpgDQGcFmaJgB` - Adam (male)
+  - `21m00Tcm4TlvDq8ikWAM` - Rachel (female)
+  - `EXAVITQu4vr4xnSDxMaL` - Bella (female)
+  - `ErXwobaYiN019PkySvjV` - Antoni (male)
+- **Example:**
+  ```bash
+  ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM  # Rachel voice
+  ```
+
+**ElevenLabs TTS details:**
+- **Quality:** Excellent - most natural and expressive
+- **Latency:** 300-800ms for synthesis
+- **Format:** MP3 audio files
+- **Cost:** Free tier 10k chars/month, paid plans from $5/month
+- **Multi-voice:** Yes - perfect for DJ dialogue (Adam + Rachel)
+- **Offline:** No - requires internet connection
+- **Privacy:** Cloud-based (audio sent to ElevenLabs)
+- **API endpoint:** `https://api.elevenlabs.io/v1/text-to-speech/{voice_id}`
+
+### Google Cloud TTS Configuration
+
+**Best for:** Multi-language support, generous free tier, high quality
+
+#### `GOOGLE_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using Google Cloud TTS)
+- **Description:** Google Cloud API key with Text-to-Speech API enabled
+- **How to get:** 
+  1. Create project at https://console.cloud.google.com
+  2. Enable Text-to-Speech API
+  3. Create API key
+- **Example:**
+  ```bash
+  GOOGLE_API_KEY=your_api_key_here
+  ```
+
+#### `GOOGLE_TTS_VOICE`
+- **Type:** String
+- **Default:** `en-US-Neural2-D`
+- **Description:** Voice name to use for TTS
+- **Popular voices:**
+  - `en-US-Neural2-D` - Male voice (used for DJ Host 1)
+  - `en-US-Neural2-F` - Female voice (used for DJ Host 2)
+  - `en-US-Wavenet-A` - Female voice (WaveNet quality)
+  - `en-US-Wavenet-D` - Male voice (WaveNet quality)
+- **Example:**
+  ```bash
+  GOOGLE_TTS_VOICE=en-US-Neural2-D
+  ```
+
+#### `GOOGLE_TTS_LANGUAGE`
+- **Type:** String
+- **Default:** `en-US`
+- **Description:** Language code for TTS
+- **Examples:**
+  ```bash
+  GOOGLE_TTS_LANGUAGE=en-US  # US English
+  GOOGLE_TTS_LANGUAGE=en-GB  # British English
+  GOOGLE_TTS_LANGUAGE=es-ES  # Spanish
+  GOOGLE_TTS_LANGUAGE=ja-JP  # Japanese
+  ```
+
+**Google Cloud TTS details:**
+- **Quality:** Very high - Neural2 and WaveNet voices
+- **Latency:** 200-400ms for synthesis
+- **Format:** MP3 audio files (base64 encoded in API response)
+- **Cost:** Free tier 1M chars/month, then $4-16 per 1M chars
+- **Multi-voice:** Yes - 220+ voices in 40+ languages
+- **Offline:** No - requires internet connection
+- **Privacy:** Cloud-based (audio sent to Google)
+- **API endpoint:** `https://texttospeech.googleapis.com/v1/text:synthesize`
+
+### Qwen3 TTS Configuration
+
+**Best for:** Chinese language, multi-language support, voice cloning, open-source option
+
+#### `DASHSCOPE_API_KEY`
+- **Type:** String
+- **Required:** Yes (when using Qwen3 TTS)
+- **Description:** Alibaba Cloud DashScope API key for Qwen3 TTS
+- **How to get:** Sign up at https://dashscope.aliyun.com
+- **Example:**
+  ```bash
+  DASHSCOPE_API_KEY=your_api_key_here
+  ```
+
+#### `QWEN_TTS_VOICE`
+- **Type:** String
+- **Default:** `Cherry`
+- **Description:** Voice name to use for TTS
+- **Available voices:**
+  - `Cherry` - Female voice (used for DJ Host 2)
+  - `Ethan` - Male voice (used for DJ Host 1)
+  - And others depending on language
+- **Example:**
+  ```bash
+  QWEN_TTS_VOICE=Cherry
+  ```
+
+#### `QWEN_TTS_MODEL`
+- **Type:** String
+- **Default:** `qwen3-tts-flash`
+- **Description:** Model to use for TTS synthesis
+- **Options:**
+  - `qwen3-tts-flash` - Fast synthesis, good quality
+  - `qwen3-tts-turbo` - Faster synthesis, balanced quality
+- **Example:**
+  ```bash
+  QWEN_TTS_MODEL=qwen3-tts-flash
+  ```
+
+#### `QWEN_TTS_VOICE_CLONE_MODEL`
+- **Type:** String
+- **Default:** `qwen3-tts-vc-realtime-2025-11-27`
+- **Description:** Model to use for voice cloning synthesis
+- **Example:**
+  ```bash
+  QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+  ```
+
+#### `QWEN_CUSTOM_VOICES`
+- **Type:** JSON String (Record<string, string>)
+- **Default:** `{}`
+- **Description:** Map speaker names to custom voice IDs for cloned voices
+- **Format:** JSON object mapping speaker names to enrolled custom voice IDs
+- **Example:**
+  ```bash
+  # Map DJ hosts to custom cloned voices
+  QWEN_CUSTOM_VOICES='{"Host 1": "my_male_voice_id", "Host 2": "my_female_voice_id"}'
+  
+  # Or use custom speaker names
+  QWEN_CUSTOM_VOICES='{"John": "johns_voice", "Sarah": "sarahs_voice"}'
+  ```
+
+**Voice Cloning Workflow:**
+
+**Method 1: Auto-generate multiple DJ voices from one sample (Recommended)**
+
+The easiest way to set up multiple DJ hosts:
+
+1. **Upload one audio sample:**
+   - Prepare a single audio file (3-20 seconds, WAV/MP3/M4A, minimum 24kHz)
+   - Can be any voice - your own, a friend's, or any reference audio
+
+2. **Generate multiple voices automatically:**
+   ```typescript
+   const qwen = new QwenTTS(config);
+   const result = await qwen.generateDJVoicesFromSample(
+     '/path/to/audio.wav',
+     'en',  // language
+     2      // number of hosts (2-5)
+   );
+   // Returns: [
+   //   { hostName: 'Host 1', voiceId: '...', description: 'Energetic male...' },
+   //   { hostName: 'Host 2', voiceId: '...', description: 'Friendly female...' }
+   // ]
+   ```
+
+3. **Voices are automatically configured:**
+   - Each host gets a unique voice with different characteristics
+   - Host 1: Energetic male with warm conversational style
+   - Host 2: Friendly female with upbeat engaging style
+   - Host 3-5: Additional variations if requested
+   - All voices are automatically mapped and ready to use
+
+4. **Start using immediately:**
+   - No additional configuration needed
+   - Voices are already set up for DJ dialogue
+   - Supports 2-5 hosts from one audio sample
+
+**Method 2: Manual voice enrollment (Advanced)**
+
+For full control over each voice:
+
+1. **Enroll a custom voice:**
+   - Prepare audio sample (10-60 seconds, WAV/MP3/M4A, minimum 24kHz)
+   - Call `enrollVoice()` API with audio file path and custom voice ID
+   - Voice is registered with Alibaba Cloud DashScope
+
+2. **Configure custom voices:**
+   - Set `QWEN_CUSTOM_VOICES` environment variable with speaker-to-voice mapping
+   - Or use `setCustomVoice()` method programmatically
+
+3. **Use in dialogue:**
+   - When synthesizing dialogue, Qwen TTS checks for custom voices first
+   - Falls back to preset voices (Cherry, Ethan) if no custom voice configured
+   - Supports unlimited custom voices for different speakers
+
+**Voice Cloning API Methods:**
+- `enrollVoice(audioPath, voiceId, language, description)` - Register a new voice
+- `generateDJVoicesFromSample(audioPath, language, numHosts)` - 🆕 Auto-generate multiple DJ voices from one sample
+- `listCustomVoices()` - Get list of enrolled voices
+- `setCustomVoice(speaker, voiceId)` - Map speaker to custom voice
+- `getCustomVoice(speaker)` - Get custom voice for speaker
+- `getCustomVoices()` - Get all custom voice mappings
+
+**Qwen3 TTS details:**
+- **Quality:** High quality neural voices
+- **Latency:** Very fast (97ms claimed)
+- **Format:** MP3 audio files (downloaded from URL)
+- **Cost:** Pay-as-you-go pricing (competitive)
+- **Multi-voice:** Yes - multiple voices per language + unlimited custom voices
+- **Languages:** 10+ including Chinese, English, Japanese, Korean, etc.
+- **Offline:** Cloud by default, but open-source models available for local deployment
+- **Privacy:** Cloud-based (audio sent to Alibaba Cloud)
+- **Voice cloning:** ✅ Full support with 3-20 second audio samples
+- **Voice design:** Create voices via text descriptions
+- **🆕 Auto-generation:** Create multiple DJ voices from single audio sample
+- **API endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/tts/synthesis`
+- **Voice enrollment endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-enrollment`
+- **Voice design endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-design`
+- **Open source:** Models available at https://github.com/QwenLM/Qwen3-TTS
+
+### Bark TTS Configuration
+
+Bark is a transformer-based text-to-audio model by Suno AI that generates highly realistic, multilingual speech with support for non-verbal sounds like laughter, sighs, and gasps.
+
+#### `BARK_PYTHON_PATH`
+- **Type:** String (Path)
+- **Default:** `python3`
+- **Description:** Path to Python interpreter with Bark installed
+- **Examples:**
+  ```bash
+  BARK_PYTHON_PATH=/usr/bin/python3
+  BARK_PYTHON_PATH=/home/user/.venv/bark/bin/python
+  BARK_PYTHON_PATH=/usr/local/bin/python3.10
+  ```
+
+#### `BARK_MODEL_PATH`
+- **Type:** String (Path)
+- **Default:** (auto-downloaded to `~/.cache/bark`)
+- **Description:** Optional custom path to Bark model files
+- **Note:** If not specified, models are auto-downloaded on first use (~2GB)
+
+#### `BARK_VOICE`
+- **Type:** String
+- **Default:** `v2/en_speaker_6` (announcer voice)
+- **Description:** Voice preset to use for TTS generation
+- **Available options:**
+  - `v2/en_speaker_0` - Male narrator
+  - `v2/en_speaker_1` - Female narrator  
+  - `v2/en_speaker_2` - Female expressive
+  - `v2/en_speaker_3` - Female conversational
+  - `v2/en_speaker_4` - Male calm
+  - `v2/en_speaker_5` - Male expressive
+  - `v2/en_speaker_6` - Male announcer (default)
+  - `v2/en_speaker_7` - Female calm
+  - `v2/en_speaker_8` - Male energetic
+  - `v2/en_speaker_9` - Male conversational
+- **Examples:**
+  ```bash
+  BARK_VOICE=v2/en_speaker_9  # Male conversational for Host 1
+  BARK_VOICE=v2/en_speaker_3  # Female conversational for Host 2
+  ```
+
+#### `BARK_ENABLE_NONVERBAL`
+- **Type:** Boolean
+- **Default:** `true`
+- **Description:** Enable automatic injection of non-verbal sounds (laughter, sighs, etc.) in DJ commentary
+- **Examples:**
+  ```bash
+  BARK_ENABLE_NONVERBAL=true   # Add natural sounds automatically
+  BARK_ENABLE_NONVERBAL=false  # Disable non-verbal sounds
+  ```
+
+**Non-verbal sound support:**
+
+Bark uniquely supports special tokens in text for non-verbal sounds:
+- `[laughter]` - Full laughing
+- `[laughs]` - Brief laugh
+- `[sighs]` - Sighing
+- `[music]` - Background music
+- `[gasps]` - Gasping
+- `[clears throat]` - Throat clearing
+- `...` - Hesitation/pause
+
+**Example usage:**
+```text
+"Alright, here comes this absolute banger... [clears throat]
+Fun fact about the recording session [laughs] they actually
+recorded it in one take at 3am! [gasps] Can you believe that?"
+```
+
+**Installation:**
+
+```bash
+# Install Bark and dependencies
+pip install git+https://github.com/suno-ai/bark.git scipy
+
+# Pre-download models (recommended, ~2GB)
+python3 -c "from bark import preload_models; preload_models()"
+```
+
+**Persona support:**
+
+All 30 DJ voice personas work with Bark. Each persona is automatically mapped to an appropriate voice preset:
+- **"Midnight FM"** → `v2/en_speaker_4` (male calm)
+- **"Morning Drive"** → `v2/en_speaker_8` (male energetic)
+- **"Classic Rock FM"** → `v2/en_speaker_6` (male announcer)
+- **"Sports Radio Energy"** → `v2/en_speaker_8` (male energetic)
+- **"Soft Indie Host"** → `v2/en_speaker_7` (female calm)
+- And all others...
+
+**Performance considerations:**
+- CPU: 5-15 seconds per segment (typical)
+- GPU (CUDA): 1-3 seconds per segment
+- Models: ~2GB disk space
+- Memory: ~4GB RAM during synthesis
+
+**Recommended for:**
+- Users wanting natural-sounding laughter, sighs, and hesitations
+- Offline/local TTS with high quality
+- Creative DJ commentary with personality
+- Privacy-conscious users (100% local, no cloud)
+- Expressive, emotional speech generation
+
+### Audio Playback Configuration
+
+#### `TTS_AUDIO_PLAYER`
+- **Type:** String (enum)
+- **Options:** `aplay`, `mpg123`, `ffplay`, `sox`
+- **Default:** Auto-detected
+- **Description:** Audio player to use for TTS playback
+- **Examples:**
+  ```bash
+  TTS_AUDIO_PLAYER=aplay   # ALSA player (WAV files)
+  TTS_AUDIO_PLAYER=mpg123  # MP3 player
+  TTS_AUDIO_PLAYER=ffplay  # FFmpeg player (supports all formats)
+  TTS_AUDIO_PLAYER=sox     # SoX player
+  ```
+
+**Auto-detection:**
+If not specified, Conductor tries players in this order:
+1. `aplay` (most common on Linux)
+2. `mpg123` (good for MP3 files)
+3. `ffplay` (most versatile)
+4. `sox` (fallback)
+
+**Installing audio players:**
+```bash
+# Ubuntu/Debian
+sudo apt install alsa-utils mpg123 ffmpeg sox
+
+# Fedora
+sudo dnf install alsa-utils mpg123 ffmpeg sox
+
+# Arch
+sudo pacman -S alsa-utils mpg123 ffmpeg sox
+```
+
+#### `TTS_CACHE_DIR`
+- **Type:** String (path)
+- **Default:** `/tmp/conductor-tts`
+- **Description:** Directory for caching generated TTS audio
+- **Examples:**
+  ```bash
+  TTS_CACHE_DIR=/tmp/conductor-tts
+  TTS_CACHE_DIR=/var/cache/conductor/tts
+  TTS_CACHE_DIR=/home/user/.cache/conductor/tts
+  ```
+
+**Cache behavior:**
+- Audio files are cached by track ID and commentary type
+- Cache persists across sessions
+- Old files (>7 days) are automatically cleaned up
+- Reduces API costs by reusing previously generated audio
+- Cache directory is created automatically if missing
+
+### AI DJ Configuration
+
+The AI DJ feature uses TTS to create radio-style commentary between songs.
+
+#### `AI_DJ_ENABLED`
+- **Type:** Boolean
+- **Default:** `true`
+- **Description:** Enable AI DJ hosts that pop in between songs
+- **Requires:** `TTS_ENABLED=true`
+- **Examples:**
+  ```bash
+  AI_DJ_ENABLED=true   # DJ hosts active
+  AI_DJ_ENABLED=false  # No DJ commentary
+  ```
+
+#### `AI_DJ_FREQUENCY`
+- **Type:** Integer
+- **Default:** `4`
+- **Description:** Number of songs between DJ commentary
+- **Range:** 1-100 (practical range: 3-10)
+- **Examples:**
+  ```bash
+  AI_DJ_FREQUENCY=3   # More frequent (every 3 songs)
+  AI_DJ_FREQUENCY=4   # Default (every 4 songs)
+  AI_DJ_FREQUENCY=6   # Less frequent (every 6 songs)
+  AI_DJ_FREQUENCY=10  # Rare (every 10 songs)
+  ```
+
+### Complete TTS Examples
+
+#### Example 1: OpenAI TTS (Cloud, High Quality)
+```bash
+# Enable TTS with OpenAI
+TTS_ENABLED=true
+TTS_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+
+# Use default voices (echo for Host 1, shimmer for Host 2)
+OPENAI_TTS_VOICE=alloy
+OPENAI_TTS_SPEED=1.0
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 2: Piper TTS (Local, Private, Free)
+```bash
+# Enable TTS with Piper
+TTS_ENABLED=true
+TTS_PROVIDER=piper
+PIPER_PATH=/usr/local/bin/piper
+PIPER_MODEL_PATH=/usr/local/share/piper/voices/en_US-lessac-medium.onnx
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=aplay
+TTS_CACHE_DIR=/home/user/.cache/conductor/tts
+```
+
+#### Example 3: ElevenLabs TTS (Premium Cloud Quality)
+```bash
+# Enable TTS with ElevenLabs
+TTS_ENABLED=true
+TTS_PROVIDER=elevenlabs
+ELEVENLABS_API_KEY=your_api_key_here
+ELEVENLABS_VOICE_ID=pNInz6obpgDQGcFmaJgB  # Adam voice
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 4: Google Cloud TTS (Multi-language)
+```bash
+# Enable TTS with Google Cloud
+TTS_ENABLED=true
+TTS_PROVIDER=google
+GOOGLE_API_KEY=your_api_key_here
+GOOGLE_TTS_VOICE=en-US-Neural2-D
+GOOGLE_TTS_LANGUAGE=en-US
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 5: Qwen3 TTS (Chinese + English)
+```bash
+# Enable TTS with Qwen3
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+QWEN_TTS_VOICE=Cherry
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 6: Qwen3 TTS with Voice Cloning
+```bash
+# Enable TTS with Qwen3 and custom cloned voices
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+
+# Configure voice cloning model
+QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+
+# Map DJ hosts to custom cloned voices
+# After enrolling voices via API, set the custom voice IDs here
+QWEN_CUSTOM_VOICES='{"Host 1": "johns_voice_id", "Host 2": "sarahs_voice_id"}'
+
+# Fallback to preset voice if custom voice not available
+QWEN_TTS_VOICE=Cherry
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+```
+
+#### Example 7: Qwen3 TTS with Auto-Generated DJ Voices (Easiest Setup)
+```bash
+# Enable TTS with Qwen3 auto-generation
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+
+# Voice cloning/design models
+QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+
+# To auto-generate multiple DJ voices, call via code:
+# const qwen = new QwenTTS(config);
+# await qwen.generateDJVoicesFromSample('/path/to/audio.wav', 'en', 2);
+# Voices are automatically configured - no QWEN_CUSTOM_VOICES needed!
+```
+
+#### Example 8: Bark TTS with Non-verbal Sounds (Local)
+```bash
+# TTS Configuration
+TTS_ENABLED=true
+TTS_PROVIDER=bark
+
+# AI DJ
+AI_DJ_ENABLED=true
+
+# Bark TTS Settings
+BARK_PYTHON_PATH=/usr/bin/python3
+BARK_VOICE=v2/en_speaker_6
+BARK_ENABLE_NONVERBAL=true
+
+# Optional: Select a DJ persona for consistent personality
+DJ_VOICE_PERSONA="Classic Rock FM"
+
+# Audio playback
+TTS_AUDIO_PLAYER=aplay
+TTS_CACHE_DIR=/tmp/conductor-tts
+
+# Installation required:
+# pip install git+https://github.com/suno-ai/bark.git scipy
+# python3 -c "from bark import preload_models; preload_models()"
+```
+
+#### Example 9: TTS Disabled
+```bash
+# Disable all TTS features
+TTS_ENABLED=false
+
+# AI DJ will be automatically disabled
+AI_DJ_ENABLED=false
+```
+
+### TTS Provider Comparison
+
+| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS | Qwen3 TTS | Bark TTS |
+|---------|-----------|-----------|------------|-----------|-----------|----------|
+| **Quality** | Very high | Good | Excellent | Very high | High | Very high |
+| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M | Pay-as-you-go | Free |
+| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms | ~100ms | 5-15s (CPU) |
+| **Offline** | No | Yes | No | No | No (models available) | Yes |
+| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (unlimited custom) | Yes (10 presets) |
+| **Setup** | API key only | Install + models | API key | Google Cloud | DashScope API | pip install |
+| **Privacy** | Cloud | Local | Cloud | Cloud | Cloud | Local |
+| **Languages** | English focus | 50+ | English focus | 40+ | 10+ (Chinese focus) | English (experimental multilingual) |
+| **Non-verbal sounds** | No | No | No | No | No | **Yes** [laughter], [sighs], etc. |
+| **Voice cloning** | No | No | Yes | No | **Yes** (3-20s samples) | No |
+| **Personas** | No | No | No | No | **Yes (30)** | **Yes (30)** |
+| **Voice cloning** | No | No | Yes | No | **Yes (3-20s samples)** |
+| **Custom voices** | No | No | Limited | No | **Unlimited** |
+| **Voice design** | No | No | No | No | **Yes (text-based)** |
+| **Status** | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented | ✅ Implemented |
+
+### TTS Troubleshooting
+
+**TTS not working:**
+1. Check `TTS_ENABLED=true` in configuration
+2. Verify TTS provider is correctly configured
+3. Test audio player: `aplay /usr/share/sounds/alsa/Front_Center.wav`
+4. Check logs for TTS errors
+
+**No audio output:**
+1. Verify audio player is installed: `which aplay mpg123 ffplay`
+2. Test system audio works
+3. Check volume levels
+4. Try different `TTS_AUDIO_PLAYER` option
+
+**Piper TTS fails:**
+1. Verify Piper is installed: `which piper` or check `PIPER_PATH`
+2. Verify model exists: `ls -lh $PIPER_MODEL_PATH`
+3. Test Piper directly: `echo "test" | piper --model <model_path> --output_file test.wav`
+4. Check model JSON file exists alongside .onnx file
+
+**OpenAI TTS fails:**
+1. Verify API key is correct
+2. Check internet connection
+3. Verify API key has credits (check OpenAI dashboard)
+4. Check for rate limiting errors in logs
+
+**AI DJ not speaking:**
+1. Ensure `TTS_ENABLED=true` and `AI_DJ_ENABLED=true`
+2. Check TTS provider is working
+3. Wait for 4 songs to play (default frequency)
+4. Check cache directory exists and is writable
+
+**For more TTS information, see:**
+- [AI_DJ_FEATURE.md](AI_DJ_FEATURE.md) - Complete AI DJ documentation
+- [TTS_RECOMMENDATIONS.md](TTS_RECOMMENDATIONS.md) - Detailed TTS provider guide
+
 ## UI Configuration
 
 Currently, UI is not configurable through environment variables.

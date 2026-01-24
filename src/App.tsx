@@ -687,14 +687,26 @@ Host 2: Yeah. Called it the Red Special. Used it on every Queen album.`;
 
       const prompt = `You are creating a SHORT radio DJ commentary (30-60 seconds when spoken) between two AI co-hosts about the song that just started playing: "${title}" by ${artist}${album ? ` from ${album}` : ''}.
 
-${introText}CRITICAL - Avoid AI writing patterns:
-- NO inflated importance ("pivotal," "testament to," "underscores," "stands as")
-- NO promotional language ("stunning," "vibrant," "renowned," "breathtaking")
-- NO vague claims ("experts believe," "many consider")
-- NO superficial -ing phrases ("showcasing," "highlighting," "symbolizing")
-- Skip empty phrases about "legacy" or "impact" unless you have something real to say
-- Vary sentence length - short and long
-- Sound like actual people talking
+${introText}HUMANIZER GUIDELINES - Write like a real human DJ, not AI:
+
+AVOID these AI patterns:
+- NO inflated importance ("pivotal," "testament to," "underscores," "stands as," "marks a shift")
+- NO promotional language ("stunning," "vibrant," "renowned," "breathtaking," "indelible mark")
+- NO vague claims ("experts believe," "many consider," "it's been said")
+- NO superficial -ing phrases ("showcasing," "highlighting," "symbolizing," "reflecting")
+- NO "broader trends" or "evolving landscape" talk
+- NO em-dash overuse (one per segment max)
+- NO "rule of three" patterns (listing three similar things)
+- Skip empty phrases about "legacy" or "significance" unless specific
+
+DO these human things:
+- Vary sentence length and rhythm - mix short punchy lines with longer flowing ones
+- Show real personality and opinions - "I love how..." or "This always gets me" instead of neutral reporting
+- Use natural reactions - "Wait, seriously?" or "No way!" instead of "This is interesting"
+- Be specific and concrete - actual production details, not vague importance claims
+- Allow natural imperfections - casual asides, half-formed thoughts, honest uncertainty
+- Acknowledge complexity and mixed feelings when appropriate
+- Let personality show through - have opinions about the music
 
 Format as quick back-and-forth:
 
@@ -710,11 +722,17 @@ Keep it:
 - Natural reactions ("Oh man, this track!" or "I didn't know that")
 - Self-aware that you're AI if first time
 
-Example good style:
+Example GOOD style (has soul):
 Host 1: Alright, here comes "${title}" by ${artist}!
 Host 2: Fun fact - they recorded this in one take at 3am.
 Host 1: No way, really?
-Host 2: Yeah, the whole band was exhausted but it just worked.`;
+Host 2: Yeah, the whole band was exhausted but it just worked.
+
+Example BAD style (AI slop - AVOID):
+Host 1: This song marks a pivotal moment in their career.
+Host 2: It underscores their evolving sound and reflects broader trends.
+Host 1: Indeed, it's a testament to their significance.
+Host 2: A truly crucial contribution to the musical landscape.`;
 
       const response = await aiAgent.processCommand(prompt);
       const commentary = response.message || '';
@@ -846,10 +864,6 @@ Host 2: Yeah, the whole band was exhausted but it just worked.`;
         </Text>
         {aiDjEnabled && ttsManager.isAvailable() && (
           <Text color="green" dimColor>
-            🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
-          </Text>
-        )}
-      </Box>
             🎙️ AI DJ hosts active - they'll pop in every 4-5 songs
           </Text>
         )}

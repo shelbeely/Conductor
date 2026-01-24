@@ -6,13 +6,17 @@
 import { TTSConfig, TTSResult, TTSProvider } from './types';
 import { PiperTTS } from './piper';
 import { OpenAITTS } from './openai';
+import { ElevenLabsTTS } from './elevenlabs';
+import { GoogleTTS } from './google';
+import { QwenTTS } from './qwen';
+import { BarkTTS } from './bark';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 
 export class TTSManager {
   private config: TTSConfig;
-  private provider: PiperTTS | OpenAITTS | null = null;
+  private provider: PiperTTS | OpenAITTS | ElevenLabsTTS | GoogleTTS | QwenTTS | BarkTTS | null = null;
   private cacheDir: string;
   private audioQueue: string[] = [];
   private isPlaying: boolean = false;
@@ -40,6 +44,18 @@ export class TTSManager {
           break;
         case 'openai':
           this.provider = new OpenAITTS(this.config);
+          break;
+        case 'elevenlabs':
+          this.provider = new ElevenLabsTTS(this.config);
+          break;
+        case 'google':
+          this.provider = new GoogleTTS(this.config);
+          break;
+        case 'qwen':
+          this.provider = new QwenTTS(this.config);
+          break;
+        case 'bark':
+          this.provider = new BarkTTS(this.config);
           break;
         default:
           console.warn(`TTS provider ${this.config.provider} not yet implemented`);
@@ -126,8 +142,11 @@ export class TTSManager {
       return [];
     }
 
-    // Check if provider supports dialogue (OpenAI does)
-    if (this.provider instanceof OpenAITTS) {
+    // Check if provider supports dialogue (all new providers do)
+    if (this.provider instanceof OpenAITTS || 
+        this.provider instanceof ElevenLabsTTS || 
+        this.provider instanceof GoogleTTS || 
+        this.provider instanceof QwenTTS) {
       const results = await (this.provider as any).synthesizeDialogue(dialogue);
       
       // Cache results if key provided
@@ -142,7 +161,7 @@ export class TTSManager {
       
       return results;
     } else {
-      // Fallback: generate each line separately
+      // Fallback: generate each line separately (for Piper)
       const results: TTSResult[] = [];
       for (let i = 0; i < dialogue.length; i++) {
         const line = dialogue[i];
