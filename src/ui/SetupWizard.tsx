@@ -962,7 +962,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           await runCommand('brew uninstall mpd mpc');
         }
 
-        setState(prev => ({
+        setState((prev: SetupState) => ({
           ...prev,
           mpd: { installed: false, configured: false }
         }));
@@ -979,7 +979,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           await runCommand('brew uninstall ollama');
         }
 
-        setState(prev => ({
+        setState((prev: SetupState) => ({
           ...prev,
           ollama: { installed: false, configured: false }
         }));
@@ -999,7 +999,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           }
         }
 
-        setState(prev => ({
+        setState((prev: SetupState) => ({
           ...prev,
           bark: { installed: false, configured: false }
         }));
@@ -1024,7 +1024,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           // Ignore uninstall errors - component may not be properly installed or already removed
         }
 
-        setState(prev => ({
+        setState((prev: SetupState) => ({
           ...prev,
           ueberzug: { installed: false, configured: false }
         }));
@@ -1038,7 +1038,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   }, [selectedComponents]);
 
   // Input handling
-  useInput((char, key) => {
+  useInput((char: string, key: any) => {
     if (confirmingAction) {
       handleConfirmationInput(char);
     } else if (screen === 'mainMenu') {
@@ -1128,7 +1128,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text></Text>
 
         <BoxDecorated title="Select components to install:">
-          {availableInstallComponents.map((comp, idx) => {
+          {availableInstallComponents.map((comp: ComponentInfo, idx: number) => {
             const statusText = formatComponentStatus(state[comp.key].installed);
             const requiredLabel = comp.required ? '(Required)' : '(Optional)';
             
@@ -1213,7 +1213,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text></Text>
 
         <BoxDecorated title="Select components to uninstall:">
-          {availableUninstallComponents.map((comp, idx) => {
+          {availableUninstallComponents.map((comp: ComponentInfo, idx: number) => {
             const statusText = formatComponentStatus(state[comp.key].installed);
             
             return (
