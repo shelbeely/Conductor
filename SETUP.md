@@ -1,5 +1,67 @@
 # Conductor Setup Guide
 
+## 🚀 Quick Start: Interactive Setup Wizard (Recommended)
+
+**The easiest way to get started!** Our interactive wizard installs and configures everything for you.
+
+```bash
+# Clone the repository
+git clone https://github.com/shelbeely/Conductor.git
+cd Conductor
+
+# Install Conductor dependencies
+bun install
+# Or with npm: npm install
+
+# Run the interactive setup wizard
+bun run setup
+# Or with npm: npm run setup
+```
+
+### What the wizard does:
+
+1. **Installs MPD** (Music Player Daemon) - Required
+   - Auto-detects your package manager (apt, pacman, brew)
+   - Creates configuration files
+   - Starts the service
+
+2. **Installs Ollama** (Local AI) - Recommended
+   - Installs Ollama
+   - Lets you choose and download a model (llama3.2, mistral, qwen2.5)
+   - Starts the service
+
+3. **Installs Bark TTS** (Text-to-Speech) - Optional
+   - Enables AI DJ hosts with non-verbal sounds ([laughs], [sighs], etc.)
+   - Downloads models (~2GB)
+
+4. **Installs Überzug++** (Album Art) - Optional
+   - Shows album covers in terminal
+   - Fallback to ASCII art if not installed
+
+5. **Creates .env file** - Automatic
+   - Configures everything based on your choices
+   - Ready to use immediately
+
+### After the wizard completes:
+
+```bash
+# Add some music to ~/Music/
+cp -r /path/to/your/music/* ~/Music/
+
+# Start Conductor
+bun start
+# Or: npm start
+
+# Try it out!
+# Type: "play some jazz"
+```
+
+---
+
+## 📖 Manual Setup (Advanced Users)
+
+If you prefer to set things up yourself or the wizard doesn't work on your system, follow these detailed instructions:
+
 ## Quick Start
 
 ### 1. Install Prerequisites

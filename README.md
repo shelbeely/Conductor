@@ -66,6 +66,33 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 
 ## Installation
 
+### Quick Start: Interactive Setup Wizard (Recommended)
+
+For beginners or quick setup, use the interactive wizard that installs everything for you:
+
+```bash
+git clone https://github.com/shelbeely/Conductor.git
+cd Conductor
+bun install
+
+# Run the interactive setup wizard
+bun run setup
+```
+
+The wizard will:
+- ✅ Install and configure MPD (Music Player Daemon)
+- ✅ Install Ollama (local AI) with model selection
+- ✅ Install Bark TTS (for AI DJ hosts with non-verbal sounds) - optional
+- ✅ Install Überzug++ (for album art) - optional
+- ✅ Create and configure your `.env` file
+- ✅ Start services and test everything
+
+**Perfect for**: First-time users, Linux beginners, or anyone who wants a hassle-free setup.
+
+### Manual Installation (Advanced)
+
+For advanced users who prefer manual control:
+
 ### 1. Clone and Install
 
 ```bash
