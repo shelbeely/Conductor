@@ -10,11 +10,14 @@ import { render } from 'ink';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { App } from './App';
+import MobileApp from './MobileApp';
 import { SetupWizard } from './ui/SetupWizard';
 
 // Check command line arguments
 const args = process.argv.slice(2);
 const forceSetup = args.includes('--setup');
+const mobileMode = args.includes('--mobile');
+const autoDetectMobile = !args.includes('--no-auto-detect');
 
 // Check if setup is needed
 const stateFile = path.join(process.cwd(), '.conductor-setup-state.json');
@@ -33,6 +36,11 @@ if (!forceSetup && existsSync(stateFile)) {
   // No state file, needs setup
   needsSetup = true;
 }
+
+// Auto-detect mobile mode based on terminal size
+const termWidth = process.stdout.columns || 80;
+const termHeight = process.stdout.rows || 24;
+const shouldUseMobile = mobileMode || (autoDetectMobile && termWidth <= 60 && termHeight <= 30);
 
 // Configuration from environment or defaults
 const config = {
@@ -55,6 +63,22 @@ const Main: React.FC = () => {
       <SetupWizard
         onComplete={() => setShowWizard(false)}
         onExit={() => process.exit(0)}
+      />
+    );
+  }
+
+  // Use mobile UI if explicitly requested or auto-detected
+  if (shouldUseMobile) {
+    return (
+      <MobileApp
+        mpdHost={config.mpdHost}
+        mpdPort={config.mpdPort}
+        aiProvider={config.aiProvider}
+        aiApiKey={config.apiKey}
+        aiModel={config.aiModel || ''}
+        aiBaseURL={config.aiBaseURL}
+        ttsProvider={config.ttsProvider}
+        ttsApiKey={config.apiKey}
       />
     );
   }
@@ -86,6 +110,13 @@ if (needsSetup) {
   if (config.ttsEnabled) {
     console.log(`  TTS: ${config.ttsProvider} (enabled)`);
   }
+  if (shouldUseMobile) {
+    console.log(`  UI Mode: Mobile (${termWidth}x${termHeight})`);
+  } else {
+    console.log(`  UI Mode: Desktop`);
+  }
+  console.log('');
+  console.log('💡 Tip: Use --mobile flag to force mobile UI, --no-auto-detect to disable auto-detection');
   console.log('');
 }
 
