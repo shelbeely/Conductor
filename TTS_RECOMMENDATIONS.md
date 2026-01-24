@@ -169,6 +169,84 @@ async function speak(text: string) {
 - Requires Google Cloud setup
 - More complex authentication
 
+#### Qwen3 TTS (Alibaba Cloud)
+
+**Why:** High-quality Chinese cloud provider with voice cloning support.
+
+- **Quality:** Natural Chinese and English voices
+- **Speed:** Fast cloud synthesis
+- **Cost:** Pay per use on Alibaba Cloud DashScope
+- **Features:** Voice cloning, custom voices, multiple models
+- **Models:** qwen3-tts-flash (fast), qwen3-tts-turbo (balanced)
+
+**Voice cloning:**
+Qwen3 supports custom voice cloning through the `qwen3-tts-vc-realtime-2025-11-27` model, allowing you to create personalized AI DJ host voices.
+
+**Configuration:**
+```bash
+DASHSCOPE_API_KEY=your_api_key_here
+QWEN_TTS_VOICE=Cherry  # Cherry, Ethan, etc.
+QWEN_TTS_MODEL=qwen3-tts-flash
+QWEN_CUSTOM_VOICES='{"Host 1": "custom_voice_id_1", "Host 2": "custom_voice_id_2"}'
+```
+
+**Pros:**
+- Custom voice cloning
+- Multiple voice options
+- Fast synthesis
+- Good quality
+
+**Cons:**
+- Requires Alibaba Cloud account
+- China-based service (may have latency for non-Chinese users)
+- Documentation primarily in Chinese
+
+#### Bark TTS (Local with emotional sounds)
+
+**Why:** Open-source local TTS with support for non-verbal sounds perfect for AI DJ hosts.
+
+- **Quality:** Natural voices with emotional expression
+- **Speed:** Slower than Piper (CPU-dependent)
+- **Cost:** Free and open source
+- **Features:** Non-verbal sounds like [laughter], [sighs], [music]
+- **Privacy:** Completely local
+
+**Special feature - Non-verbal sounds:**
+Bark supports special tokens that add human-like sounds:
+- `[laughter]`, `[laughs]` - Natural laughter
+- `[sighs]` - Sighing sounds
+- `[music]` - Musical notes
+- `[gasps]` - Gasping sounds
+- `[clears throat]` - Throat clearing
+- `...` - Hesitation/pause
+
+**Installation:**
+```bash
+pip install git+https://github.com/suno-ai/bark.git scipy
+```
+
+**Configuration:**
+```bash
+BARK_PYTHON_PATH=/usr/bin/python3
+BARK_VOICE=v2/en_speaker_6  # v2/en_speaker_0 through v2/en_speaker_9
+BARK_ENABLE_NONVERBAL=true  # Automatically adds natural sounds
+```
+
+**Pros:**
+- Free and open source
+- Runs completely offline
+- Non-verbal sounds add personality (perfect for AI DJ)
+- Multiple voice presets
+- No API key needed
+
+**Cons:**
+- Slower synthesis (3-5x slower than Piper)
+- Requires more RAM (~2GB for models)
+- CPU-intensive
+- Takes longer to generate audio
+
+**Perfect for:** AI DJ hosts that need personality and natural conversational sounds.
+
 ### 3. Hybrid approach (Recommended)
 
 Use both local and cloud TTS:
