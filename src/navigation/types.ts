@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type ScreenId = 'home' | 'queue' | 'search' | 'settings' | 'help';
 
 export interface Screen {

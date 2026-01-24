@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Text } from 'ink';
+import React, { useState } from 'react';
+import { Box, Text, useInput } from 'ink';
 import Card from '../components/Card';
 import ListRow from '../components/ListRow';
 
@@ -36,6 +36,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onShowQueue,
   onShowLyrics,
 }) => {
+  const [selectedAction, setSelectedAction] = useState(0);
+  const actionCount = 3;
+
+  useInput((input, key) => {
+    if (input === 'j' || key.downArrow) {
+      setSelectedAction((prev) => Math.min(prev + 1, actionCount - 1));
+    } else if (input === 'k' || key.upArrow) {
+      setSelectedAction((prev) => Math.max(prev - 1, 0));
+    } else if (key.return) {
+      switch (selectedAction) {
+        case 0:
+          onShowQueue();
+          break;
+        case 1:
+          onShowLyrics();
+          break;
+        case 2:
+          // AI command - future feature
+          break;
+      }
+    }
+  });
+
   const stateIcon = status?.state === 'play' ? '▶' : status?.state === 'pause' ? '⏸' : '⏹';
   const progress = status?.duration
     ? Math.floor((status.elapsed || 0) / status.duration * 20)
@@ -73,21 +96,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           title="View Queue"
           subtitle="See upcoming tracks"
           showChevron
-          isSelected={false}
+          isSelected={selectedAction === 0}
         />
         <ListRow
           icon="🎤"
           title="Show Lyrics"
           subtitle="View synchronized lyrics"
           showChevron
-          isSelected={false}
+          isSelected={selectedAction === 1}
         />
         <ListRow
           icon="🤖"
           title="AI Command"
           subtitle="Natural language control"
           showChevron
-          isSelected={false}
+          isSelected={selectedAction === 2}
         />
       </Box>
 
