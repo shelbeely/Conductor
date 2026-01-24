@@ -131,7 +131,6 @@ Conductor/
 │   │   └── SetupWizard.tsx   - Interactive setup wizard
 │   ├── App.tsx               - Main orchestration
 │   └── index.tsx             - Entry point
-│   └── index.tsx             ( 60 lines) - Entry point
 ├── ARCHITECTURE.md           - Design documentation
 ├── CONTRIBUTING.md           - Contribution guide
 ├── SETUP.md                  - Installation & setup
