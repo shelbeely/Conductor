@@ -137,6 +137,12 @@ export const ASCII_FUN = {
        🎵 SUCCESS! 🎵
     ✨ 🎊 ✨ 🎉 ✨ 🎊 ✨
   `,
+  conductor: `
+     (/¯◡ ‿ ◡)/¯
+     
+     Your friendly
+     orchestra conductor!
+  `,
   robot: `
      ╔═══╗
      ║ ◉ ║  Hi! I'm here to help!

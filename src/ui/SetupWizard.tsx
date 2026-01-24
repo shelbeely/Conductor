@@ -114,6 +114,12 @@ const ASCII_ART = {
      ♫ ♪ ♫ ♪ ♫
     ♪ ♫ ♪ ♫ ♪ ♫
   `,
+  conductor: `
+     (/¯◡ ‿ ◡)/¯
+     
+     Your friendly
+     orchestra conductor!
+  `,
   robot: `
      ╔═══╗
      ║ ◉ ║  Hi! I'm here to help!
@@ -1320,7 +1326,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text color="cyan">{ASCII_ART.logo}</Text>
         
         <Box marginTop={1}>
-          <Text>{ASCII_ART.robot}</Text>
+          <Text>{ASCII_ART.conductor}</Text>
         </Box>
 
         <BoxDecorated title="🤖 SETUP ASSISTANT MODE 🤖">
@@ -1390,7 +1396,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text color="cyan">{ASCII_ART.logo}</Text>
         
         <Box marginTop={1}>
-          <Text>{ASCII_ART.robot}</Text>
+          <Text>{ASCII_ART.conductor}</Text>
         </Box>
 
         {assistantMessage && (
@@ -1612,7 +1618,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text color="cyan">{ASCII_ART.logo}</Text>
         
         <Box marginTop={1}>
-          <Text>{ASCII_ART.robot}</Text>
+          <Text>{ASCII_ART.conductor}</Text>
         </Box>
 
         <BoxDecorated title="🎓 GUIDED SETUP MODE 🎓">
@@ -1661,7 +1667,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text color="cyan">{ASCII_ART.logo}</Text>
         
         <Box marginTop={1}>
-          <Text>{ASCII_ART.robot}</Text>
+          <Text>{ASCII_ART.conductor}</Text>
         </Box>
 
         {guidedModeActive && assistantMessage && (
