@@ -383,6 +383,92 @@ qwen.setCustomVoice('Host 2', 'my_custom_female_voice');
 
 **Status:** ✅ Implemented (including voice cloning)
 
+#### Bark TTS (Local with non-verbal sounds)
+
+**Best for:** Realistic speech with natural sounds (laughter, sighs, gasps), offline use, expressive commentary
+
+**Configuration:**
+```bash
+TTS_PROVIDER=bark
+TTS_ENABLED=true
+BARK_PYTHON_PATH=/usr/bin/python3
+BARK_VOICE=v2/en_speaker_6
+BARK_ENABLE_NONVERBAL=true
+```
+
+**Installation:**
+```bash
+# Install Bark and dependencies
+pip install git+https://github.com/suno-ai/bark.git scipy
+
+# First run will download models (~2GB)
+python3 -c "from bark import preload_models; preload_models()"
+```
+
+**Available voices:** 10 voice presets (v2/en_speaker_0 through v2/en_speaker_9):
+- `v2/en_speaker_0` - Male narrator
+- `v2/en_speaker_1` - Female narrator
+- `v2/en_speaker_2` - Female expressive
+- `v2/en_speaker_3` - Female conversational
+- `v2/en_speaker_4` - Male calm
+- `v2/en_speaker_5` - Male expressive
+- `v2/en_speaker_6` - Male announcer (default)
+- `v2/en_speaker_7` - Female calm
+- `v2/en_speaker_8` - Male energetic
+- `v2/en_speaker_9` - Male conversational
+
+**Non-verbal sound support:**
+Bark's unique feature is built-in support for non-verbal sounds. Include special tokens in your text:
+- `[laughter]` - Full laughing
+- `[laughs]` - Brief laugh
+- `[sighs]` - Sighing
+- `[music]` - Background music
+- `[gasps]` - Gasping
+- `[clears throat]` - Throat clearing
+- `...` - Hesitation/pause
+
+**Example DJ commentary with non-verbal sounds:**
+```
+"Alright, here comes this absolute banger... [clears throat] 
+Fun fact about the recording session [laughs] they actually 
+recorded it in one take at 3am! [gasps] Can you believe that?"
+```
+
+**Persona support:**
+All 30 DJ voice personas work with Bark. Each persona is automatically mapped to an appropriate voice preset:
+- "Midnight FM" → Male calm voice
+- "Morning Drive" → Female energetic voice
+- "Classic Rock FM" → Male announcer voice
+- "Sports Radio Energy" → Male energetic voice
+- And all others...
+
+**Pros:**
+- **Unique non-verbal sounds** - Only TTS that natively supports laughter, sighs, etc.
+- Completely free and open source
+- Very natural prosody and intonation
+- Works 100% offline after initial model download
+- No API keys or accounts needed
+- Privacy-first (nothing sent to cloud)
+- **All 30 DJ personas supported**
+- Transformer-based for high quality
+
+**Cons:**
+- Requires Python and ~2GB of models
+- Slower synthesis (5-15 seconds per segment on CPU)
+- Requires moderate GPU/CPU resources
+- Limited to English voices (multilingual support experimental)
+- Voice cloning not as advanced as Qwen3
+
+**Performance tips:**
+- Use GPU for faster synthesis (CUDA supported)
+- Cache generated audio aggressively
+- Shorter text segments synthesize faster
+- Pre-generate common phrases
+
+**Pricing:** Completely free
+
+**Status:** ✅ Implemented (including non-verbal sounds and persona support)
+
 ### Choosing a TTS provider
 
 **For most users:** Start with **Piper** (free, private, works offline)
@@ -397,7 +483,11 @@ qwen.setCustomVoice('Host 2', 'my_custom_female_voice');
 
 **For Chinese language:** Use **Qwen3 TTS** (native Chinese support, voice cloning)
 
-**For voice personas:** Use **Qwen3 TTS** with DJ Voice Personas (30 distinct broadcast styles)
+**For voice personas:** Use **Qwen3 TTS** or **Bark TTS** with DJ Voice Personas (30 distinct broadcast styles)
+
+**For non-verbal sounds:** Use **Bark TTS** (laughter, sighs, gasps, natural hesitations)
+
+**For voice cloning:** Use **Qwen3 TTS** (clone unlimited voices from 3-20 second samples)
 
 ## DJ Voice Personas (Qwen3 TTS)
 

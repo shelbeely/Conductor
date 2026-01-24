@@ -9,13 +9,14 @@ import { OpenAITTS } from './openai';
 import { ElevenLabsTTS } from './elevenlabs';
 import { GoogleTTS } from './google';
 import { QwenTTS } from './qwen';
+import { BarkTTS } from './bark';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 
 export class TTSManager {
   private config: TTSConfig;
-  private provider: PiperTTS | OpenAITTS | ElevenLabsTTS | GoogleTTS | QwenTTS | null = null;
+  private provider: PiperTTS | OpenAITTS | ElevenLabsTTS | GoogleTTS | QwenTTS | BarkTTS | null = null;
   private cacheDir: string;
   private audioQueue: string[] = [];
   private isPlaying: boolean = false;
@@ -52,6 +53,9 @@ export class TTSManager {
           break;
         case 'qwen':
           this.provider = new QwenTTS(this.config);
+          break;
+        case 'bark':
+          this.provider = new BarkTTS(this.config);
           break;
         default:
           console.warn(`TTS provider ${this.config.provider} not yet implemented`);

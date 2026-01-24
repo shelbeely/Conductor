@@ -2,7 +2,7 @@
  * TTS Module Types
  */
 
-export type TTSProvider = 'piper' | 'openai' | 'elevenlabs' | 'google' | 'qwen';
+export type TTSProvider = 'piper' | 'openai' | 'elevenlabs' | 'google' | 'qwen' | 'bark';
 
 export type DJVoicePersona = 
   | 'Midnight FM'
@@ -76,6 +76,12 @@ export interface TTSConfig {
   qwenCustomVoices?: Record<string, string>;  // Map speaker names to custom voice IDs
   qwenVoiceCloneModel?: string;  // Model for voice cloning
   djVoicePersona?: DJVoicePersona;  // Selected DJ voice persona
+  
+  // Bark settings (local TTS with non-verbal sounds)
+  barkPythonPath?: string;  // Path to Python interpreter with Bark installed
+  barkModelPath?: string;   // Path to Bark model directory (optional)
+  barkVoice?: string;       // Voice preset (e.g., 'v2/en_speaker_6')
+  barkEnableNonVerbal?: boolean;  // Enable automatic non-verbal sound injection
   
   // Audio playback
   audioPlayer?: 'aplay' | 'mpg123' | 'sox' | 'ffplay';

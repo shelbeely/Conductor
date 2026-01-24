@@ -910,6 +910,109 @@ For full control over each voice:
 - **Voice design endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-design`
 - **Open source:** Models available at https://github.com/QwenLM/Qwen3-TTS
 
+### Bark TTS Configuration
+
+Bark is a transformer-based text-to-audio model by Suno AI that generates highly realistic, multilingual speech with support for non-verbal sounds like laughter, sighs, and gasps.
+
+#### `BARK_PYTHON_PATH`
+- **Type:** String (Path)
+- **Default:** `python3`
+- **Description:** Path to Python interpreter with Bark installed
+- **Examples:**
+  ```bash
+  BARK_PYTHON_PATH=/usr/bin/python3
+  BARK_PYTHON_PATH=/home/user/.venv/bark/bin/python
+  BARK_PYTHON_PATH=/usr/local/bin/python3.10
+  ```
+
+#### `BARK_MODEL_PATH`
+- **Type:** String (Path)
+- **Default:** (auto-downloaded to `~/.cache/bark`)
+- **Description:** Optional custom path to Bark model files
+- **Note:** If not specified, models are auto-downloaded on first use (~2GB)
+
+#### `BARK_VOICE`
+- **Type:** String
+- **Default:** `v2/en_speaker_6` (announcer voice)
+- **Description:** Voice preset to use for TTS generation
+- **Available options:**
+  - `v2/en_speaker_0` - Male narrator
+  - `v2/en_speaker_1` - Female narrator  
+  - `v2/en_speaker_2` - Female expressive
+  - `v2/en_speaker_3` - Female conversational
+  - `v2/en_speaker_4` - Male calm
+  - `v2/en_speaker_5` - Male expressive
+  - `v2/en_speaker_6` - Male announcer (default)
+  - `v2/en_speaker_7` - Female calm
+  - `v2/en_speaker_8` - Male energetic
+  - `v2/en_speaker_9` - Male conversational
+- **Examples:**
+  ```bash
+  BARK_VOICE=v2/en_speaker_9  # Male conversational for Host 1
+  BARK_VOICE=v2/en_speaker_3  # Female conversational for Host 2
+  ```
+
+#### `BARK_ENABLE_NONVERBAL`
+- **Type:** Boolean
+- **Default:** `true`
+- **Description:** Enable automatic injection of non-verbal sounds (laughter, sighs, etc.) in DJ commentary
+- **Examples:**
+  ```bash
+  BARK_ENABLE_NONVERBAL=true   # Add natural sounds automatically
+  BARK_ENABLE_NONVERBAL=false  # Disable non-verbal sounds
+  ```
+
+**Non-verbal sound support:**
+
+Bark uniquely supports special tokens in text for non-verbal sounds:
+- `[laughter]` - Full laughing
+- `[laughs]` - Brief laugh
+- `[sighs]` - Sighing
+- `[music]` - Background music
+- `[gasps]` - Gasping
+- `[clears throat]` - Throat clearing
+- `...` - Hesitation/pause
+
+**Example usage:**
+```text
+"Alright, here comes this absolute banger... [clears throat]
+Fun fact about the recording session [laughs] they actually
+recorded it in one take at 3am! [gasps] Can you believe that?"
+```
+
+**Installation:**
+
+```bash
+# Install Bark and dependencies
+pip install git+https://github.com/suno-ai/bark.git scipy
+
+# Pre-download models (recommended, ~2GB)
+python3 -c "from bark import preload_models; preload_models()"
+```
+
+**Persona support:**
+
+All 30 DJ voice personas work with Bark. Each persona is automatically mapped to an appropriate voice preset:
+- **"Midnight FM"** → `v2/en_speaker_4` (male calm)
+- **"Morning Drive"** → `v2/en_speaker_8` (male energetic)
+- **"Classic Rock FM"** → `v2/en_speaker_6` (male announcer)
+- **"Sports Radio Energy"** → `v2/en_speaker_8` (male energetic)
+- **"Soft Indie Host"** → `v2/en_speaker_7` (female calm)
+- And all others...
+
+**Performance considerations:**
+- CPU: 5-15 seconds per segment (typical)
+- GPU (CUDA): 1-3 seconds per segment
+- Models: ~2GB disk space
+- Memory: ~4GB RAM during synthesis
+
+**Recommended for:**
+- Users wanting natural-sounding laughter, sighs, and hesitations
+- Offline/local TTS with high quality
+- Creative DJ commentary with personality
+- Privacy-conscious users (100% local, no cloud)
+- Expressive, emotional speech generation
+
 ### Audio Playback Configuration
 
 #### `TTS_AUDIO_PLAYER`
@@ -1134,7 +1237,33 @@ TTS_CACHE_DIR=/tmp/conductor-tts
 # Voices are automatically configured - no QWEN_CUSTOM_VOICES needed!
 ```
 
-#### Example 8: TTS Disabled
+#### Example 8: Bark TTS with Non-verbal Sounds (Local)
+```bash
+# TTS Configuration
+TTS_ENABLED=true
+TTS_PROVIDER=bark
+
+# AI DJ
+AI_DJ_ENABLED=true
+
+# Bark TTS Settings
+BARK_PYTHON_PATH=/usr/bin/python3
+BARK_VOICE=v2/en_speaker_6
+BARK_ENABLE_NONVERBAL=true
+
+# Optional: Select a DJ persona for consistent personality
+DJ_VOICE_PERSONA="Classic Rock FM"
+
+# Audio playback
+TTS_AUDIO_PLAYER=aplay
+TTS_CACHE_DIR=/tmp/conductor-tts
+
+# Installation required:
+# pip install git+https://github.com/suno-ai/bark.git scipy
+# python3 -c "from bark import preload_models; preload_models()"
+```
+
+#### Example 9: TTS Disabled
 ```bash
 # Disable all TTS features
 TTS_ENABLED=false
@@ -1145,16 +1274,19 @@ AI_DJ_ENABLED=false
 
 ### TTS Provider Comparison
 
-| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS | Qwen3 TTS |
-|---------|-----------|-----------|------------|-----------|-----------|
-| **Quality** | Very high | Good | Excellent | Very high | High |
-| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M | Pay-as-you-go |
-| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms | ~100ms |
-| **Offline** | No | Yes | No | No | No (models available) |
-| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (unlimited custom) |
-| **Setup** | API key only | Install + models | API key | Google Cloud | DashScope API |
-| **Privacy** | Cloud | Local | Cloud | Cloud | Cloud |
-| **Languages** | English focus | 50+ | English focus | 40+ | 10+ (Chinese focus) |
+| Feature | OpenAI TTS | Piper TTS | ElevenLabs | Google TTS | Qwen3 TTS | Bark TTS |
+|---------|-----------|-----------|------------|-----------|-----------|----------|
+| **Quality** | Very high | Good | Excellent | Very high | High | Very high |
+| **Cost** | $15/1M chars | Free | $5+/mo | Free tier 1M | Pay-as-you-go | Free |
+| **Latency** | 200-500ms | 100-300ms | 300-800ms | 200-400ms | ~100ms | 5-15s (CPU) |
+| **Offline** | No | Yes | No | No | No (models available) | Yes |
+| **Multi-voice** | Yes (6 voices) | No (1 per model) | Yes | Yes (220+) | Yes (unlimited custom) | Yes (10 presets) |
+| **Setup** | API key only | Install + models | API key | Google Cloud | DashScope API | pip install |
+| **Privacy** | Cloud | Local | Cloud | Cloud | Cloud | Local |
+| **Languages** | English focus | 50+ | English focus | 40+ | 10+ (Chinese focus) | English (experimental multilingual) |
+| **Non-verbal sounds** | No | No | No | No | No | **Yes** [laughter], [sighs], etc. |
+| **Voice cloning** | No | No | Yes | No | **Yes** (3-20s samples) | No |
+| **Personas** | No | No | No | No | **Yes (30)** | **Yes (30)** |
 | **Voice cloning** | No | No | Yes | No | **Yes (3-20s samples)** |
 | **Custom voices** | No | No | Limited | No | **Unlimited** |
 | **Voice design** | No | No | No | No | **Yes (text-based)** |
