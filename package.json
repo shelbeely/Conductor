@@ -15,8 +15,8 @@
     "start": "node dist/index.js",
     "start:bun": "bun run dist/index.js",
     "type-check": "tsc --noEmit",
-    "setup": "tsx src/setup/wizard.ts",
-    "setup:bun": "bun run src/setup/wizard.ts"
+    "setup": "tsx src/index.tsx --setup",
+    "setup:bun": "bun run src/index.tsx --setup"
   },
   "keywords": [
     "music",

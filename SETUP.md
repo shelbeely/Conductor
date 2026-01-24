@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start: Interactive Setup Wizard (Recommended)
 
-**The easiest way to get started!** Our interactive wizard installs and configures everything for you.
+**The easiest way to get started!** Our interactive wizard is now built into the main app using Ink for a beautiful terminal experience.
 
 ```bash
 # Clone the repository
@@ -15,8 +15,18 @@ bun install
 
 # Run the interactive setup wizard
 bun run setup
-# Or with npm: npm run setup
+# Or simply: bun start (wizard shows automatically on first run)
 ```
+
+### ✨ New Ink-based Wizard Features:
+
+- 🎨 **Beautiful UI**: ASCII art, animations, and color-coded feedback
+- ♿ **Accessible Design**: ADHD and autism-friendly with clear visual cues
+- 🔄 **Re-runnable**: Add or remove components anytime with `bun run setup`
+- 📦 **Selective Installation**: Choose exactly what you want
+- 🗑️ **Uninstall Support**: Easy cleanup of components you don't need
+- 🎭 **Whimsical & Fun**: Friendly robot assistant, emojis, celebration screens
+- 🚀 **Seamless Integration**: Transitions smoothly from setup to main app
 
 ### What the wizard does:
 
@@ -48,9 +58,9 @@ bun run setup
 # Add some music to ~/Music/
 cp -r /path/to/your/music/* ~/Music/
 
-# Start Conductor
+# The wizard automatically transitions to Conductor!
+# Or restart it with:
 bun start
-# Or: npm start
 
 # Try it out!
 # Type: "play some jazz"

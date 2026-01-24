@@ -16,6 +16,7 @@ import { Visualizer } from './ui/Visualizer';
 import { CommandInput } from './ui/CommandInput';
 import { TrackStory } from './ui/TrackStory';
 import { Lyrics } from './ui/Lyrics';
+import { Assistant, getAssistantMessage } from './ui/Assistant';
 import { TTSManager } from './tts/manager';
 import type { TTSConfig } from './tts/types';
 
@@ -91,6 +92,12 @@ export const App: React.FC<AppProps> = ({
   // Lyrics feature state
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyrics, setCurrentLyrics] = useState<LyricsData | null>(null);
+  
+  // Assistant state - available throughout the app
+  const [showAssistant, setShowAssistant] = useState(false);
+  const [assistantMode, setAssistantMode] = useState<'guided' | 'fast' | 'silent'>('guided');
+  const [assistantState, setAssistantState] = useState<'idle' | 'thinking' | 'success' | 'warning' | 'error' | 'happy' | 'excited' | 'working'>('idle');
+  const [assistantMessage, setAssistantMessage] = useState('');
 
   // Initialize
   useEffect(() => {
