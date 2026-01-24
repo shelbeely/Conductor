@@ -112,7 +112,7 @@ const VOICE_PERSONAS: Record<DJVoicePersona, VoicePersonaConfig> = {
   },
   'Late-Night Confessional': {
     name: 'Late-Night Confessional',
-    description: 'Soft, close-mic'd, emotionally intimate voice',
+    description: 'Soft, close-mic\'d, emotionally intimate voice',
     voicePrompt: 'soft intimate close-mic voice, very slow pacing, audible breaths, gentle inflection, feels like secrets shared after midnight, vulnerable sincere reassuring tone',
     pacing: 'slow',
     pitch: 'medium-low',
