@@ -1,28 +1,45 @@
 /**
  * Assistant Component
- * A friendly robot guide that helps users through the setup wizard
+ * A friendly robot guide that helps users throughout the Conductor app
+ * Can be used in the wizard, main app, or anywhere assistance is needed
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 
 export type AssistantMode = 'guided' | 'fast' | 'silent';
-export type AssistantState = 'idle' | 'thinking' | 'success' | 'warning' | 'error';
+export type AssistantState = 'idle' | 'thinking' | 'success' | 'warning' | 'error' | 'happy' | 'excited' | 'working';
 
 interface AssistantProps {
   mode: AssistantMode;
   state?: AssistantState;
   message: string;
   compact?: boolean;
+  animate?: boolean;
 }
 
-// Assistant face representations for different states
+// Expanded assistant face representations with more expressions
 const ASSISTANT_FACES = {
   idle: '[◉_◉]',
-  thinking: '[◉~◉]',
+  thinking: ['[◉~◉]', '[◉≖◉]', '[◉~◉]', '[◉≖◉]'], // Animated - alternating
   success: '[◉‿◉]',
   warning: '[◉_◉]',
   error: '[◉︵◉]',
+  happy: '[◉ᵕ◉]',
+  excited: ['[◉✧◉]', '[◉▣◉]', '[◉✧◉]'], // Animated - sparkly
+  working: ['[◉~◉]', '[◉≖◉]', '[◉▣◉]', '[◉≖◉]'], // Animated - busy
+} as const;
+
+// Color mapping for different states
+const STATE_COLORS = {
+  idle: 'cyan',
+  thinking: 'blue',
+  success: 'green',
+  warning: 'yellow',
+  error: 'red',
+  happy: 'green',
+  excited: 'magenta',
+  working: 'cyan',
 } as const;
 
 // Hoisted helper to determine if we should show message based on mode
@@ -36,7 +53,15 @@ const shouldShowMessage = (mode: AssistantMode, messageType: 'info' | 'warning' 
   return true; // guided mode shows everything
 };
 
-export const Assistant = React.memo(({ mode, state = 'idle', message, compact = false }: AssistantProps) => {
+export const Assistant = React.memo(({ 
+  mode, 
+  state = 'idle', 
+  message, 
+  compact = false,
+  animate = true 
+}: AssistantProps) => {
+  const [animationFrame, setAnimationFrame] = useState(0);
+  
   // Determine message type from state
   const messageType = state === 'error' ? 'error' : state === 'warning' ? 'warning' : 'info';
   
@@ -50,13 +75,30 @@ export const Assistant = React.memo(({ mode, state = 'idle', message, compact = 
     return null;
   }
 
-  const face = ASSISTANT_FACES[state];
-  const color = state === 'error' ? 'red' : state === 'warning' ? 'yellow' : state === 'success' ? 'green' : 'cyan';
+  const faces = ASSISTANT_FACES[state];
+  const color = STATE_COLORS[state];
+  
+  // Determine if this state uses animation
+  const isAnimated = Array.isArray(faces);
+  
+  // Animation effect for states with multiple frames
+  useEffect(() => {
+    if (!isAnimated || !animate) return;
+    
+    const interval = setInterval(() => {
+      setAnimationFrame(prev => (prev + 1) % (faces as string[]).length);
+    }, 300); // Change frame every 300ms
+    
+    return () => clearInterval(interval);
+  }, [isAnimated, faces, animate]);
+  
+  // Get current face
+  const currentFace = isAnimated ? (faces as string[])[animationFrame] : faces;
 
   if (compact) {
     return (
       <Box>
-        <Text color={color}>{face} </Text>
+        <Text color={color} bold>{currentFace} </Text>
         <Text dimColor>{message}</Text>
       </Box>
     );
@@ -66,7 +108,7 @@ export const Assistant = React.memo(({ mode, state = 'idle', message, compact = 
     <Box padding={1} borderStyle="round" borderColor={color}>
       <Box flexDirection="column">
         <Box>
-          <Text color={color} bold>{face} Assistant</Text>
+          <Text color={color} bold>{currentFace} Assistant</Text>
         </Box>
         <Box marginTop={1}>
           <Text>{message}</Text>
@@ -78,7 +120,7 @@ export const Assistant = React.memo(({ mode, state = 'idle', message, compact = 
 
 Assistant.displayName = 'Assistant';
 
-// Context-specific assistant messages
+// Context-specific assistant messages for wizard
 export const AssistantMessages = {
   welcome: {
     guided: "Hey there! I'm your setup assistant. I'll help you get Conductor up and running. Don't worry - I'll explain everything as we go, and if something goes wrong, we can always fix it together!",
@@ -151,6 +193,45 @@ export const AssistantMessages = {
     sudo: "This next step needs administrator permissions. I'll run: sudo [command]. You might be asked for your password.",
     overwrite: "There's already a file there. I can back it up first if you'd like, or we can skip this step.",
     diskSpace: "Heads up: This will download several gigabytes. Make sure you have enough disk space!",
+  },
+  
+  // Messages for main app usage
+  app: {
+    connecting: {
+      guided: "Connecting to MPD (Music Player Daemon). This is what actually plays your music!",
+      fast: "Connecting to MPD...",
+      silent: "",
+    },
+    connected: {
+      guided: "Connected! Everything's ready. You can now use natural language commands like 'play some jazz' or 'skip to next song'.",
+      fast: "Connected to MPD.",
+      silent: "",
+    },
+    aiProcessing: {
+      guided: "Let me think about that command and figure out what you want me to do...",
+      fast: "Processing command...",
+      silent: "",
+    },
+    searchingMusic: {
+      guided: "Searching through your music library to find what you're looking for...",
+      fast: "Searching...",
+      silent: "",
+    },
+    generatingPlaylist: {
+      guided: "Creating a playlist based on what you asked for. I'll look at your library and pick tracks that match!",
+      fast: "Generating playlist...",
+      silent: "",
+    },
+    loadingMetadata: {
+      guided: "Fetching additional information about this track from MusicBrainz. This helps me tell you more about the artist and album!",
+      fast: "Loading metadata...",
+      silent: "",
+    },
+    connectionLost: {
+      guided: "Oops! Lost connection to MPD. Don't worry - I'll try to reconnect automatically. Your music and playlists are safe!",
+      fast: "Connection lost. Reconnecting...",
+      silent: "",
+    },
   },
 };
 
