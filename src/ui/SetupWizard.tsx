@@ -1465,7 +1465,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           <Text>     Remote, requires API key (~$0.001-0.01 per request)</Text>
           <Text></Text>
           
-          <Text color={aiProviderSelection === 'anthropic' ? 'green' : 'white'} bold={aiProviderSelection === 'anthropic'}>2</Text>. Anthropic Claude - Direct access to Claude models</Text>
+          <Text>  <Text color={aiProviderSelection === 'anthropic' ? 'green' : 'white'} bold={aiProviderSelection === 'anthropic'}>2</Text>. Anthropic Claude - Direct access to Claude models</Text>
           <Text>     Remote, requires API key (~$0.003-0.015 per request)</Text>
           <Text></Text>
           
