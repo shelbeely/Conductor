@@ -670,6 +670,22 @@ current track
 
 The UI already shows this, but asking can get you an AI response with formatted details or extra context from MusicBrainz.
 
+### Lyrics
+
+View synced lyrics that scroll with the music:
+
+```
+show lyrics
+display lyrics
+lyrics
+hide lyrics
+close lyrics
+```
+
+Or press the **L** key to toggle lyrics on/off.
+
+Lyrics are fetched from LRCLib and sync automatically with playback. If synced lyrics aren't available, plain text lyrics are shown instead.
+
 ### Queue status
 
 ```

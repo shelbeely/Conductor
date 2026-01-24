@@ -559,15 +559,17 @@ Conductor supports text-to-speech for the AI DJ feature and "Beyond the Beat" tr
 
 #### `TTS_PROVIDER`
 - **Type:** String (enum)
-- **Options:** `openai`, `piper`, `elevenlabs`, `google`
+- **Options:** `openai`, `piper`, `elevenlabs`, `google`, `qwen`, `bark`
 - **Default:** `openai`
 - **Description:** Which TTS provider to use for audio generation
 - **Examples:**
   ```bash
   TTS_PROVIDER=openai      # Cloud TTS with high quality voices
   TTS_PROVIDER=piper       # Local TTS, private and free
-  TTS_PROVIDER=elevenlabs  # Premium cloud TTS (planned)
-  TTS_PROVIDER=google      # Google Cloud TTS (planned)
+  TTS_PROVIDER=elevenlabs  # Premium cloud TTS with voice cloning
+  TTS_PROVIDER=google      # Google Cloud TTS with generous free tier
+  TTS_PROVIDER=qwen        # Alibaba Cloud with custom voices
+  TTS_PROVIDER=bark        # Local TTS with non-verbal sounds for AI DJ
   ```
 
 ### OpenAI TTS Configuration

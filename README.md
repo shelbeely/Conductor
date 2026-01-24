@@ -46,6 +46,11 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 
 **Album Art:** Überzug++ support with ASCII art fallback
 
+**Lyrics Display:** Synced lyrics from LRCLib with real-time highlighting
+- Press `L` to toggle lyrics view
+- Automatic sync with playback position
+- Scrolling lyrics display
+
 **Modular Architecture:** Clean separation of concerns (MPD, AI, Metadata, UI)
 
 ## Prerequisites
@@ -244,10 +249,16 @@ Conductor understands natural language. Just type what you want:
 - "show queue" / "show me what's playing next"
 - "clear queue"
 
+**Lyrics:**
+- "show lyrics" / "display lyrics"
+- Press `L` key to toggle lyrics display
+- Synced lyrics scroll automatically with playback
+
 ### Keyboard Shortcuts
 
 - `↑` / `↓`: Navigate command history
 - `Enter`: Send command
+- `L`: Toggle lyrics display
 - `Ctrl+C`: Quit application
 
 ### Environment Variables
@@ -267,14 +278,25 @@ src/
 ├── mpd/          # MPD client and connection management
 │   └── client.ts
 ├── ai/           # AI agent with multi-provider support
-│   └── agent.ts  # OpenRouter, Ollama, Anthropic
+│   └── agent.ts  # OpenRouter, Ollama, Anthropic, GitHub Copilot
 ├── metadata/     # MusicBrainz integration
 │   └── musicbrainz.ts
+├── lyrics/       # LRCLib synced lyrics integration
+│   └── lrclib.ts
 ├── art/          # Album art display (Überzug++)
 │   └── display.ts
+├── tts/          # Text-to-Speech for AI DJ hosts
+│   ├── manager.ts
+│   ├── bark.ts
+│   ├── elevenlabs.ts
+│   ├── google.ts
+│   ├── openai.ts
+│   ├── piper.ts
+│   └── qwen.ts
 ├── ui/           # React/Ink TUI components
 │   ├── NowPlaying.tsx
 │   ├── Queue.tsx
+│   ├── Lyrics.tsx
 │   ├── Visualizer.tsx
 │   └── CommandInput.tsx
 ├── App.tsx       # Main application orchestration
@@ -283,14 +305,14 @@ src/
 
 ## AI Provider Comparison
 
-| Feature | OpenRouter | Ollama | Anthropic |
-|---------|-----------|--------|-----------|
-| Cost | Pay per use | Free | Pay per use |
-| Privacy | Data sent to API | Fully local | Data sent to API |
-| Setup | API key needed | Install locally | API key needed |
-| Speed | Fast (cloud) | Depends on hardware | Fast (cloud) |
-| Models | Many options | Local models only | Claude only |
-| Offline | No | Yes | No |
+| Feature | OpenRouter | Ollama | Anthropic | GitHub Copilot |
+|---------|-----------|--------|-----------|----------------|
+| Cost | Pay per use | Free | Pay per use | Subscription |
+| Privacy | Data sent to API | Fully local | Data sent to API | Data sent to API |
+| Setup | API key needed | Install locally | API key needed | GitHub token needed |
+| Speed | Fast (cloud) | Depends on hardware | Fast (cloud) | Fast (cloud) |
+| Models | Many options | Local models only | Claude only | GPT-4o, o1, Claude |
+| Offline | No | Yes | No | No |
 
 ## Troubleshooting
 

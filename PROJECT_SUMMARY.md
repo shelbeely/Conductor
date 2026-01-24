@@ -5,10 +5,12 @@
 Conductor is a TUI (Terminal User Interface) music player for Linux that combines:
 
 1. MPD control with full Music Player Daemon integration
-2. AI-powered commands via OpenRouter or Ollama
+2. AI-powered commands via OpenRouter, Ollama, Anthropic, or GitHub Copilot SDK
 3. MusicBrainz integration for artist/album information
-4. Ink-based TUI with album art support (Überzug++)
-5. Modular code structure
+4. Synced lyrics display via LRCLib
+5. AI DJ hosts with TTS for radio-style commentary
+6. Ink-based TUI with album art support (Überzug++)
+7. Modular code structure
 
 ## Key features implemented
 
@@ -21,11 +23,13 @@ Conductor is a TUI (Terminal User Interface) music player for Linux that combine
 - Automatic reconnection
 
 ### AI integration
-- Multi-provider support (OpenRouter, Ollama, Anthropic)
+- Multi-provider support (OpenRouter, Ollama, Anthropic, GitHub Copilot SDK)
 - Natural language command processing
 - Structured tool calling with Zod schemas
 - Conversation history and context
-- 8 predefined tool schemas for music operations
+- Dynamic model selection and switching
+- AI-powered playlist generation
+- 8+ predefined tool schemas for music operations
 
 ### Metadata and enrichment
 - MusicBrainz API integration
@@ -43,10 +47,20 @@ Conductor is a TUI (Terminal User Interface) music player for Linux that combine
 ### User interface (Ink/React)
 - Now Playing view with enriched metadata
 - Queue display with current position indicator
+- Synced lyrics display with real-time highlighting (LRCLib integration)
 - Audio visualizer (animated)
 - Command input with history navigation
-- Keyboard shortcuts
+- Keyboard shortcuts (L for lyrics toggle)
 - Clean, responsive layout
+
+### Text-to-Speech and AI DJ
+- AI DJ hosts with radio-style commentary between songs
+- Multiple TTS providers (OpenAI, Piper, Bark, ElevenLabs, Google, Qwen3)
+- Bark TTS with non-verbal sounds ([laughter], [sighs], etc.)
+- Qwen3 TTS with voice cloning support
+- 30 unique DJ voice personas
+- "Beyond the Beat" podcast-style track stories
+- Configurable DJ frequency and personalities
 
 ### Development and documentation
 - TypeScript configuration
@@ -63,8 +77,10 @@ Conductor is a TUI (Terminal User Interface) music player for Linux that combine
 Runtime: bun.js (or Node.js 18+)
 UI: Ink (React for CLI)
 MPD Client: mpc-js
-AI Providers: OpenRouter API, Ollama
+AI Providers: OpenRouter, Ollama, Anthropic, GitHub Copilot SDK
 Metadata: MusicBrainz API
+Lyrics: LRCLib API
+TTS: OpenAI, Piper, Bark, ElevenLabs, Google Cloud, Qwen3
 Album Art: Überzug++
 Type Safety: TypeScript
 Validation: Zod
@@ -72,11 +88,11 @@ Build: TypeScript Compiler
 
 ## Project statistics
 
-Source Files: 10 TypeScript/TSX files
-Total Lines of Code: ~1,595 lines
-Modules: 6 (MPD, AI, Metadata, Art, UI, App)
-UI Components: 4 (NowPlaying, Queue, Visualizer, CommandInput)
-AI Tools: 8 predefined schemas
+Source Files: 20+ TypeScript/TSX files
+Modules: 9 (MPD, AI, Metadata, Lyrics, Art, TTS, UI, App, Setup)
+UI Components: 8+ (NowPlaying, Queue, Lyrics, Visualizer, CommandInput, TrackStory, Assistant, SetupWizard)
+AI Tools: 10+ predefined schemas
+TTS Providers: 6 (OpenAI, Piper, Bark, ElevenLabs, Google, Qwen3)
 Dependencies: 13 runtime, 4 dev dependencies
 
 ## File structure
@@ -85,20 +101,36 @@ Dependencies: 13 runtime, 4 dev dependencies
 Conductor/
 ├── src/
 │   ├── mpd/
-│   │   └── client.ts         (250 lines) - MPD connection & control
+│   │   └── client.ts         - MPD connection & control
 │   ├── ai/
-│   │   └── agent.ts          (365 lines) - Multi-provider AI agent
+│   │   ├── agent.ts          - Multi-provider AI agent
+│   │   └── copilot-provider.ts - GitHub Copilot SDK integration
 │   ├── metadata/
-│   │   └── musicbrainz.ts    (240 lines) - MusicBrainz integration
+│   │   └── musicbrainz.ts    - MusicBrainz integration
+│   ├── lyrics/
+│   │   └── lrclib.ts         - LRCLib synced lyrics
 │   ├── art/
-│   │   └── display.ts        (175 lines) - Überzug++ album art
+│   │   └── display.ts        - Überzug++ album art
+│   ├── tts/
+│   │   ├── manager.ts        - TTS provider management
+│   │   ├── openai.ts         - OpenAI TTS
+│   │   ├── piper.ts          - Piper local TTS
+│   │   ├── bark.ts           - Bark TTS with non-verbal sounds
+│   │   ├── elevenlabs.ts     - ElevenLabs premium TTS
+│   │   ├── google.ts         - Google Cloud TTS
+│   │   ├── qwen.ts           - Qwen3 TTS with voice cloning
+│   │   └── types.ts          - TTS type definitions
 │   ├── ui/
-│   │   ├── NowPlaying.tsx    (155 lines) - Current track display
-│   │   ├── Queue.tsx         ( 85 lines) - Playlist view
-│   │   ├── Visualizer.tsx    ( 65 lines) - Audio visualizer
-│   │   └── CommandInput.tsx  ( 80 lines) - Natural language input
-│   ├── App.tsx               (280 lines) - Main orchestration
-│   └── index.tsx             ( 60 lines) - Entry point
+│   │   ├── NowPlaying.tsx    - Current track display
+│   │   ├── Queue.tsx         - Playlist view
+│   │   ├── Lyrics.tsx        - Synced lyrics display
+│   │   ├── Visualizer.tsx    - Audio visualizer
+│   │   ├── CommandInput.tsx  - Natural language input
+│   │   ├── TrackStory.tsx    - "Beyond the Beat" stories
+│   │   ├── Assistant.tsx     - AI assistant UI
+│   │   └── SetupWizard.tsx   - Interactive setup wizard
+│   ├── App.tsx               - Main orchestration
+│   └── index.tsx             - Entry point
 ├── ARCHITECTURE.md           - Design documentation
 ├── CONTRIBUTING.md           - Contribution guide
 ├── SETUP.md                  - Installation & setup
