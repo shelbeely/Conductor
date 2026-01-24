@@ -397,6 +397,288 @@ qwen.setCustomVoice('Host 2', 'my_custom_female_voice');
 
 **For Chinese language:** Use **Qwen3 TTS** (native Chinese support, voice cloning)
 
+**For voice personas:** Use **Qwen3 TTS** with DJ Voice Personas (30 distinct broadcast styles)
+
+## DJ Voice Personas (Qwen3 TTS)
+
+The Qwen3 TTS provider supports **30 distinct DJ voice personas**, each with unique cadence, pitch, emotional tone, and broadcast style. Select a persona to give your AI DJ a consistent personality and style.
+
+**Persona Categories:**
+- **Broadcast Styles (1-10):** Traditional radio formats and broadcast personalities
+- **Specialized Styles (11-20):** Niche broadcast formats and cultural perspectives
+- **Music Artist-Inspired (21-30):** Personas inspired by iconic music artist vocal styles
+
+### Available Personas
+
+#### 1. **"Midnight FM"**
+- **Style:** Low, warm, intimate late-night radio voice
+- **Pacing:** Slow | **Pitch:** Low
+- **Emotional Tone:** Calm, reflective, cozy
+- **Best for:** Late-night listening, chill sessions
+- **Vibe:** Feels like talking directly to one listener at 1:47 AM
+
+#### 2. **"Morning Drive"**
+- **Style:** Bright, upbeat, high-energy commuter radio host
+- **Pacing:** Fast | **Pitch:** Medium-high
+- **Emotional Tone:** Cheerful, encouraging, energetic
+- **Best for:** Morning playlists, wake-up music
+- **Vibe:** Designed to wake people up without yelling
+
+#### 3. **"Classic Rock FM"**
+- **Style:** Slightly gravelly, confident, experienced broadcaster
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Confident, nostalgic, cool
+- **Best for:** Rock, classic hits, retro music
+- **Vibe:** Seasoned DJ who knows the history
+
+#### 4. **"College Radio Chaos"**
+- **Style:** Casual, slightly messy, authentic indie DJ
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Quirky, earnest, playful
+- **Best for:** Indie, alternative, experimental music
+- **Vibe:** Sounds like vinyl, coffee, and posters on the wall
+
+#### 5. **"Top 40 Pop Host"**
+- **Style:** Polished, glossy, radio-ready pop presentation
+- **Pacing:** Fast | **Pitch:** Medium-high
+- **Emotional Tone:** Excited, friendly, hype-adjacent
+- **Best for:** Pop music, mainstream hits
+- **Vibe:** Commercial radio perfection
+
+#### 6. **"Underground Electronic"**
+- **Style:** Cool, minimal, slightly detached club DJ voice
+- **Pacing:** Medium | **Pitch:** Medium-low
+- **Emotional Tone:** Restrained, stylish, mysterious
+- **Best for:** Electronic, techno, house music
+- **Vibe:** Warehouse club set at 2 AM
+
+#### 7. **"Public Radio Narrator"**
+- **Style:** Calm, articulate, thoughtful, neutral-but-warm
+- **Pacing:** Slow | **Pitch:** Medium
+- **Emotional Tone:** Composed, curious, grounded
+- **Best for:** Jazz, classical, world music
+- **Vibe:** Trustworthy and intelligent NPR-style
+
+#### 8. **"Old-School AM Talk"**
+- **Style:** Assertive, expressive, slightly dramatic delivery
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Confident, animated, commanding
+- **Best for:** Talk segments, storytelling
+- **Vibe:** Classic talk radio authority
+
+#### 9. **"Soft Indie Host"**
+- **Style:** Gentle, breathy, emotionally present voice
+- **Pacing:** Slow | **Pitch:** Medium
+- **Emotional Tone:** Tender, sincere, warm
+- **Best for:** Indie, folk, lo-fi music
+- **Vibe:** Intimate and vulnerable
+
+#### 10. **"Futuristic AI DJ"**
+- **Style:** Smooth, controlled, subtly synthetic but pleasant
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Calm, precise, quietly confident
+- **Best for:** Electronic, ambient, future sounds
+- **Vibe:** Intentional, modern, and sleek—not cold
+
+#### 11. **"Late-Night Confessional"**
+- **Style:** Soft, close-mic'd, emotionally intimate voice
+- **Pacing:** Very slow | **Pitch:** Medium-low
+- **Emotional Tone:** Vulnerable, sincere, reassuring
+- **Best for:** Intimate late-night sessions, emotional playlists
+- **Vibe:** Feels like secrets shared after midnight
+
+#### 12. **"Sports Radio Energy"**
+- **Style:** Confident, fast-paced, slightly aggressive but controlled
+- **Pacing:** Fast | **Pitch:** Medium-high
+- **Emotional Tone:** Hyped, competitive, animated
+- **Best for:** Workout mixes, high-energy playlists
+- **Vibe:** Even when neutral, sounds opinionated
+
+#### 13. **"Retro 90s Alt DJ"**
+- **Style:** Dry, ironic, slightly detached Gen-X cadence
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Cool, sarcastic, understated
+- **Best for:** Alternative, grunge, 90s nostalgia
+- **Vibe:** Flannel, distortion pedals, and college towns
+
+#### 14. **"Luxury Lounge Host"**
+- **Style:** Smooth, velvety, sophisticated presentation
+- **Pacing:** Slow-medium | **Pitch:** Medium-low
+- **Emotional Tone:** Smooth, refined, sensual (non-sexual)
+- **Best for:** Jazz, lounge, sophisticated evening music
+- **Vibe:** Expensive, candlelit, and intentional
+
+#### 15. **"Queer Community Radio"**
+- **Style:** Warm, affirming, conversational voice
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Supportive, joyful, grounded
+- **Best for:** Diverse music, community playlists
+- **Vibe:** Welcoming, safe, and human-first
+
+#### 16. **"No-Nonsense News Break"**
+- **Style:** Neutral, clipped, efficient broadcast voice
+- **Pacing:** Fast | **Pitch:** Medium
+- **Emotional Tone:** Restrained, serious, focused
+- **Best for:** Headlines, alerts, transitions
+- **Vibe:** Information-first, minimal emotion
+
+#### 17. **"DIY Punk Radio"**
+- **Style:** Raw, energetic, imperfect delivery encouraged
+- **Pacing:** Fast | **Pitch:** Medium-high
+- **Emotional Tone:** Rebellious, enthusiastic, scrappy
+- **Best for:** Punk, hardcore, underground music
+- **Vibe:** Basement shows and photocopied flyers
+
+#### 18. **"Ambient Soundscape Guide"**
+- **Style:** Soft, slow, almost whispered narration
+- **Pacing:** Slow | **Pitch:** Low
+- **Emotional Tone:** Calm, meditative, airy
+- **Best for:** Ambient, meditation, background music
+- **Vibe:** Blends into music, doesn't dominate
+
+#### 19. **"Global Beats Curator"**
+- **Style:** Confident, rhythmic, culturally curious tone
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Engaged, vibrant, thoughtful
+- **Best for:** World music, diverse cultural sounds
+- **Vibe:** Careful pronunciation, respectful, worldly
+
+#### 20. **"After-Hours Chillhop"**
+- **Style:** Low-energy, relaxed, slightly sleepy voice
+- **Pacing:** Slow | **Pitch:** Low
+- **Emotional Tone:** Mellow, cozy, introspective
+- **Best for:** Lo-fi, chillhop, late-night study sessions
+- **Vibe:** City lights through a bus window
+
+### Music Artist-Inspired Personas (21-30)
+
+These personas draw inspiration from iconic music artist vocal styles and delivery patterns.
+
+#### 21. **"Velvet Soul Crooner"**
+- **Inspired by:** Classic soul & R&B vocalists
+- **Style:** Smooth, rounded tone with emotional warmth
+- **Pacing:** Slow-medium | **Pitch:** Medium-low
+- **Emotional Tone:** Romantic, earnest, soothing
+- **Best for:** Soul, R&B, romantic playlists
+- **Vibe:** Heartfelt without melodrama, expressive vowels
+
+#### 22. **"Indie Whisper Poet"**
+- **Inspired by:** Modern indie singer-songwriters
+- **Style:** Soft, airy delivery with introspective energy
+- **Pacing:** Slow | **Pitch:** Medium
+- **Emotional Tone:** Tender, thoughtful, melancholic
+- **Best for:** Indie folk, acoustic, intimate sessions
+- **Vibe:** Personal, not performative, intimate mic presence
+
+#### 23. **"Arena Rock Frontperson"**
+- **Inspired by:** Stadium rock vocal energy
+- **Style:** Confident, expansive tone without shouting
+- **Pacing:** Medium | **Pitch:** Medium-high
+- **Emotional Tone:** Triumphant, hyped, charismatic
+- **Best for:** Rock, anthems, motivational playlists
+- **Vibe:** Commanding but friendly, strong projection
+
+#### 24. **"Lo-Fi Bedroom Pop"**
+- **Inspired by:** DIY bedroom producers
+- **Style:** Relaxed, casual delivery with subtle emotional color
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Chill, sincere, understated
+- **Best for:** Bedroom pop, lo-fi beats, casual listening
+- **Vibe:** Homemade in the best way, natural pauses
+
+#### 25. **"Alternative Cool Minimalist"**
+- **Inspired by:** Understated alt & post-punk singers
+- **Style:** Flat affect by design, intentional restraint
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Cool, detached, controlled
+- **Best for:** Alternative, post-punk, minimal wave
+- **Vibe:** Aloof but compelling, confident calm
+
+#### 26. **"Neo-Soul Groove Host"**
+- **Inspired by:** Modern soul & groove artists
+- **Style:** Rhythmic speech, warm tone, subtle musicality
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Smooth, confident, grounded
+- **Best for:** Neo-soul, funk, groove-based music
+- **Vibe:** Voice rides the beat, cadence matters
+
+#### 27. **"Electronic Pop Futurist"**
+- **Inspired by:** Experimental pop & synth artists
+- **Style:** Clean, precise delivery with a modern edge
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Poised, sleek, playful
+- **Best for:** Synth-pop, experimental pop, electronic
+- **Vibe:** Forward-looking, balanced warmth and polish
+
+#### 28. **"Folk Storyteller"**
+- **Inspired by:** Acoustic folk musicians
+- **Style:** Natural, narrative-focused delivery
+- **Pacing:** Slow | **Pitch:** Medium
+- **Emotional Tone:** Warm, reflective, grounded
+- **Best for:** Folk, Americana, storytelling music
+- **Vibe:** Telling stories by a fire, emotional honesty
+
+#### 29. **"Grunge-Era Radio Cool"**
+- **Inspired by:** 90s alternative energy
+- **Style:** Slight grit in tone without distortion
+- **Pacing:** Medium | **Pitch:** Medium-low
+- **Emotional Tone:** Raw, casual, authentic
+- **Best for:** Grunge, 90s alt rock, raw energy
+- **Vibe:** Anti-hype in a cool way, unforced confidence
+
+#### 30. **"Experimental Art-Pop Host"**
+- **Inspired by:** Boundary-pushing art-pop musicians
+- **Style:** Expressive, dynamic, intentionally unconventional
+- **Pacing:** Medium | **Pitch:** Medium
+- **Emotional Tone:** Curious, bold, expressive
+- **Best for:** Art-pop, experimental, avant-garde
+- **Vibe:** Plays with pacing creatively, artistic not chaotic
+
+### Using Voice Personas
+
+**Configuration:**
+```bash
+# In .env file
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key
+DJ_VOICE_PERSONA="Midnight FM"  # Select your persona
+```
+
+**Generate a persona voice:**
+```typescript
+const qwen = new QwenTTS(config);
+
+// Generate voice for selected persona (optional audio reference)
+const result = await qwen.generatePersonaVoice(
+  '/path/to/audio.wav',  // Optional: audio sample for voice base
+  'Midnight FM',          // Persona name
+  'en'                    // Language
+);
+
+// Use persona voice for DJ segments
+const audio = await qwen.synthesizeWithPersona("Welcome to late-night radio...");
+```
+
+**Persona behavior rules:**
+- ✅ Consistent persona within a session unless explicitly switched
+- ✅ Natural pacing, breath, and personality
+- ✅ Avoids robotic delivery
+- ✅ Matches emotional tone to selected persona
+- ✅ Short radio segments, natural transitions
+- ✅ No meta commentary or self-reference (unless persona-appropriate)
+
+**Switching personas:**
+```typescript
+// Change persona mid-session
+qwen.setPersona('Morning Drive');
+
+// Get current persona
+const current = qwen.getCurrentPersona(); // Returns 'Morning Drive'
+
+// Get all available personas
+const all = qwen.getAllPersonas(); // Returns array of all 10 personas
+```
+
 ### Voice assignment
 
 **OpenAI voices for dialogue:**
