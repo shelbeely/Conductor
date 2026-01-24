@@ -5,6 +5,76 @@ All notable changes to Conductor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+**Lyrics Display:**
+- Integrated LRCLib API for synced lyrics
+- Real-time lyrics scrolling with playback position
+- Highlighted current line for sing-along
+- Keyboard shortcut (L key) to toggle lyrics view
+- Natural language commands: "show lyrics", "hide lyrics"
+- Automatic fallback to plain text lyrics when synced lyrics unavailable
+- Lyrics caching for improved performance
+
+**GitHub Copilot SDK Integration:**
+- Added GitHub Copilot SDK as fourth AI provider option
+- Support for GPT-4o, GPT-4o-mini, o1-preview, o1-mini, and Claude models via Copilot
+- Requires GitHub token with 'copilot' scope
+- See COPILOT_SDK_SETUP.md for configuration details
+
+**AI DJ Hosts Feature:**
+- Radio-style AI hosts that provide commentary between songs
+- Two-host conversation format (Host 1 and Host 2)
+- Automatic activation every 4-5 songs (configurable)
+- Self-aware AI that admits it might be wrong
+- 30 unique DJ voice personas to choose from
+- Natural language commands: "enable dj", "disable dj"
+- TTS integration with multiple providers
+
+**Enhanced TTS Support:**
+- Added Bark TTS provider (local, with non-verbal sounds)
+- Added ElevenLabs TTS provider (premium cloud quality)
+- Added Google Cloud TTS provider (generous free tier)
+- Added Qwen3 TTS provider (with voice cloning support)
+- Bark supports special tokens: [laughter], [sighs], [music], [gasps]
+- 30 DJ voice personas with distinct personalities
+- Voice cloning support for custom AI DJ hosts
+
+**Setup Wizard Improvements:**
+- Converted setup wizard to Ink-based UI component
+- Beautiful terminal interface with ASCII art and animations
+- ADHD and autism-friendly design with clear visual feedback
+- Selective component installation (MPD, Ollama, Bark TTS, Überzug++)
+- Uninstall support for easy cleanup
+- Re-runnable with `bun run setup`
+- Smooth transition from setup to main app
+
+**Beyond the Beat Feature:**
+- Podcast-style track story narration
+- Two AI hosts discuss song meaning, production, and history
+- Pre-generated and cached audio for seamless playback
+- Natural language command: "beyond the beat"
+
+### Changed
+
+- Updated README.md with lyrics feature, keyboard shortcuts, and expanded TTS documentation
+- Updated USER_GUIDE.md with lyrics section and L key documentation
+- Updated COMMANDS.md with lyrics commands
+- Updated CONFIGURATION.md with all TTS providers (qwen, bark)
+- Updated TTS_RECOMMENDATIONS.md with Qwen3 and Bark documentation
+- Updated architecture diagram to include lyrics and TTS modules
+- Added GitHub Copilot to AI Provider comparison table
+
+### Documentation
+
+- Comprehensive lyrics documentation across README, USER_GUIDE, and COMMANDS
+- Added Bark TTS non-verbal sounds documentation
+- Added Qwen3 voice cloning documentation
+- Added 30 DJ voice persona descriptions
+- Updated all TTS provider documentation
+
 ## [0.2.0] - 2024-01-15
 
 ### Added
@@ -163,7 +233,6 @@ The TUI shows what's playing, what's queued, and accepts commands at the bottom.
 ### Planned for 0.3.0
 
 - Playlist management: Save, load, edit playlists via natural language
-- Lyrics display: Fetch and show lyrics in the TUI
 - Audio visualizer improvements: More visualization modes
 - Radio mode: Stream internet radio stations through MPD
 - Smart shuffle: Weighted random based on listening history
