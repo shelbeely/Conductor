@@ -77,6 +77,7 @@ bun install
 
 # Run the interactive setup wizard
 bun run setup
+# Or simply: bun start (wizard shows automatically on first run)
 ```
 
 The wizard will:
@@ -86,6 +87,13 @@ The wizard will:
 - ✅ Install Überzug++ (for album art) - optional
 - ✅ Create and configure your `.env` file
 - ✅ Start services and test everything
+
+**NEW**: The wizard is now built into the main app using Ink! It features:
+- 🎨 Beautiful terminal UI with ASCII art and animations
+- ♿ ADHD and autism-friendly design with clear visual feedback
+- 🔄 Re-run anytime with `bun run setup` to add/remove components
+- 📦 Selective installation - choose what you want
+- 🗑️ Uninstall support for easy cleanup
 
 **Perfect for**: First-time users, Linux beginners, or anyone who wants a hassle-free setup.
 
