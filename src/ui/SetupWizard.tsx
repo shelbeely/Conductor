@@ -336,6 +336,12 @@ const stopMPD = async (os: OSType): Promise<void> => {
 const setupEnvFile = (envConfig: Record<string, string>): void => {
   const envPath = path.join(process.cwd(), '.env');
   const examplePath = path.join(process.cwd(), '.env.example');
+  const backupPath = path.join(process.cwd(), '.env.backup');
+
+  // Backup existing .env file if it exists
+  if (existsSync(envPath)) {
+    copyFileSync(envPath, backupPath);
+  }
 
   // Start with example if it exists
   let envContent = '';
@@ -909,6 +915,10 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
 
       // Install MPD
       if (selectedComponents.has('mpd')) {
+        // Show assistant message before installation
+        setAssistantState('idle');
+        setAssistantMessage(getAssistantMessage(assistantMode, 'beforeMPDInstall'));
+        
         setInstallProgress(prev => [...prev, { 
           component: 'mpd', 
           stage: 'checking', 
@@ -926,6 +936,9 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
             stage: 'installing', 
             status: 'inProgress' 
           }]);
+          
+          setAssistantState('thinking');
+          setAssistantMessage('Running package manager to install MPD...');
 
           if (pm === 'apt') {
             await runCommand('sudo apt-get update && sudo apt-get install -y mpd mpc');
@@ -946,7 +959,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         newEnvConfig['MPD_HOST'] = 'localhost';
         newEnvConfig['MPD_PORT'] = '6600';
 
-        setState(prev => ({
+        setState((prev: SetupState) => ({
           ...prev,
           mpd: { installed: true, configured: true, lastInstalled: new Date().toISOString() }
         }));
@@ -956,6 +969,9 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           stage: 'complete', 
           status: 'success' 
         }]);
+        
+        setAssistantState('success');
+        setAssistantMessage(AssistantMessages.success.component);
       }
 
       // Install Ollama
@@ -1144,16 +1160,22 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
       }
 
       // Save .env configuration
+      setAssistantState('idle');
+      setAssistantMessage(getAssistantMessage(assistantMode, 'beforeEnvWrite'));
       setEnvConfig(newEnvConfig);
       setupEnvFile(newEnvConfig);
 
       // Show completion screen
+      setAssistantState('success');
+      setAssistantMessage(AssistantMessages.success.complete);
       setScreen('complete');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
+      setAssistantState('error');
+      setAssistantMessage(AssistantMessages.error.generic);
       setScreen('error');
     }
-  }, [selectedComponents]);
+  }, [selectedComponents, assistantMode]);
 
   // Uninstallation logic
   const performUninstallation = useCallback(async () => {
@@ -1422,6 +1444,12 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
       <Box flexDirection="column" padding={1}>
         <Text color="cyan" bold>━━━ 🤖 SELECT AI PROVIDER ━━━</Text>
         
+        {assistantMessage && (
+          <Box marginTop={1}>
+            <Assistant mode={assistantMode} state={assistantState} message={assistantMessage} />
+          </Box>
+        )}
+        
         <Box marginTop={1} flexDirection="column">
           <Text></Text>
           <Text>Choose your AI provider:</Text>
@@ -1431,7 +1459,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           <Text>     Remote, requires API key (~$0.001-0.01 per request)</Text>
           <Text></Text>
           
-          <Text>  <Text color={aiProviderSelection === 'anthropic' ? 'green' : 'white'} bold={aiProviderSelection === 'anthropic'}>2</Text>. Anthropic Claude - Direct access to Claude models</Text>
+          <Text color={aiProviderSelection === 'anthropic' ? 'green' : 'white'} bold={aiProviderSelection === 'anthropic'}>2</Text>. Anthropic Claude - Direct access to Claude models</Text>
           <Text>     Remote, requires API key (~$0.003-0.015 per request)</Text>
           <Text></Text>
           
@@ -1850,6 +1878,12 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text bold>━━━ 🚀 STARTING INSTALLATION! 🚀 ━━━</Text>
         <Text></Text>
         
+        {assistantMessage && (
+          <Box marginTop={1}>
+            <Assistant mode={assistantMode} state={assistantState} message={assistantMessage} compact />
+          </Box>
+        )}
+        
         <ProgressBar steps={progressSteps} currentStep={progressStep} />
         
         <Box marginTop={1} flexDirection="column">
@@ -1880,6 +1914,12 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
       <Box flexDirection="column" padding={1}>
         <Text bold>━━━ 🗑️ STARTING UNINSTALL ━━━</Text>
         <Text></Text>
+        
+        {assistantMessage && (
+          <Box marginTop={1}>
+            <Assistant mode={assistantMode} state='warning' message={getAssistantMessage(assistantMode, 'beforeUninstall')} compact />
+          </Box>
+        )}
         
         <LoadingAnimation message="Uninstalling components..." />
 
@@ -1939,7 +1979,17 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         <Text bold color="red">━━━ ⚠️ OOPS! SOMETHING WENT WRONG ━━━</Text>
         <Text></Text>
         
-        <Text color="red">✗ Error: {errorMessage}</Text>
+        <Box marginTop={1}>
+          <Assistant 
+            mode={assistantMode} 
+            state='error' 
+            message={assistantMessage || "Don't worry! Errors happen and we can fix this together. Let's figure out what went wrong and try again."} 
+          />
+        </Box>
+        
+        <Box marginTop={1}>
+          <Text color="red">✗ Error: {errorMessage}</Text>
+        </Box>
         
         <Box marginTop={1}>
           <BoxDecorated title="💡 TROUBLESHOOTING TIPS">
@@ -1947,7 +1997,10 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
               <Text>• Check your internet connection</Text>
             </BoxContentLine>
             <BoxContentLine>
-              <Text>• Make sure you have sufficient permissions</Text>
+              <Text>• Make sure you have sufficient permissions (try sudo)</Text>
+            </BoxContentLine>
+            <BoxContentLine>
+              <Text>• Verify your system has enough disk space</Text>
             </BoxContentLine>
             <BoxContentLine>
               <Text>• Try running the wizard again</Text>
@@ -1959,7 +2012,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
         </Box>
 
         <Box marginTop={1}>
-          <Text color="cyan">Want to try again? (y/n):</Text>
+          <Text color="cyan">Want to try again? (Y to retry / N to exit):</Text>
         </Box>
       </Box>
     );
