@@ -74,11 +74,11 @@ const Main: React.FC = () => {
         mpdHost={config.mpdHost}
         mpdPort={config.mpdPort}
         aiProvider={config.aiProvider}
-        aiApiKey={config.apiKey}
+        aiApiKey={config.apiKey || ''}
         aiModel={config.aiModel || ''}
         aiBaseURL={config.aiBaseURL}
         ttsProvider={config.ttsProvider}
-        ttsApiKey={config.apiKey}
+        ttsApiKey={config.apiKey || ''}
       />
     );
   }

@@ -37,10 +37,25 @@ A Linux-first TUI music player built with bun.js and Ink that controls MPD (Musi
 - See current model and provider information
 
 **Terminal Interface:** Built with Ink (React for CLI)
+- Desktop TUI with full-featured views
+- **Mobile-App-Like TUI (NEW)** - Touch-friendly interface for small screens
+  - Optimized for 40-48 column terminals
+  - Bottom navigation bar with 3-5 tabs
+  - Stack-based navigation like mobile apps
+  - Simple keyboard shortcuts (no function keys needed)
+  - Auto-detects small terminals and switches mode
 - Now Playing view with track metadata
 - Queue viewer with navigation
 - Audio visualizer
 - Album art display (via Überzug++)
+
+**Mobile UI Features (NEW):**
+- **One-Handed Operation:** All controls accessible via j/k/Enter/Esc
+- **Responsive Design:** Adapts to terminal resize events
+- **Touch-Friendly:** Designed for soft keyboard input
+- **Navigation:** Home, Queue, Search, Settings screens
+- **Feedback:** Toast notifications and modal overlays
+- See [MOBILE_UI.md](MOBILE_UI.md) for full documentation
 
 **Metadata Enrichment:** MusicBrainz integration for artist/album info
 
@@ -223,6 +238,44 @@ bun run dev
 ```
 
 ## Usage
+
+### Desktop TUI (Default)
+
+Start Conductor normally for the full-featured desktop interface:
+
+```bash
+bun start
+# or
+conductor
+```
+
+### Mobile UI Mode (NEW)
+
+For small terminals or touch-friendly one-handed operation:
+
+```bash
+# Force mobile mode
+conductor --mobile
+
+# Auto-detect (activates on terminals ≤60x30)
+conductor
+
+# Disable auto-detection
+conductor --no-auto-detect
+```
+
+**Mobile UI Keyboard Shortcuts:**
+- `j/k` - Navigate up/down
+- `Enter` - Select item
+- `1-4` - Jump to tab (Home/Queue/Search/Settings)
+- `Space` - Play/pause
+- `n/p` - Next/previous track
+- `/` - Search
+- `?` - Help screen
+- `b` or `Esc` - Go back
+- `Ctrl+Q` - Quit
+
+See [MOBILE_UI.md](MOBILE_UI.md) for complete mobile UI documentation.
 
 ### Natural Language Commands
 
