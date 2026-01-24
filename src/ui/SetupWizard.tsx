@@ -11,9 +11,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import { exec, spawn, type ChildProcess } from 'child_process';
 import { promisify } from 'util';
-import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'fs';
+import { existsSync, writeFileSync, readFileSync, mkdirSync, copyFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
+import { AIAgent, type AIProviderConfig } from '../ai/agent';
+import { Assistant, AssistantMessages, getAssistantMessage, type AssistantMode, type AssistantState } from './Assistant';
 
 const execAsync = promisify(exec);
 
@@ -27,7 +29,17 @@ interface ComponentState {
   lastInstalled?: string;
 }
 
+interface AIConfig {
+  provider: 'openrouter' | 'anthropic' | 'ollama' | 'copilot';
+  apiKey?: string;
+  model?: string;
+  baseURL?: string;
+  configured: boolean;
+  tested: boolean;
+}
+
 interface SetupState {
+  ai: AIConfig;
   mpd: ComponentState;
   ollama: ComponentState;
   bark: ComponentState;
@@ -40,7 +52,7 @@ interface SetupWizardProps {
 }
 
 interface ComponentInfo {
-  key: keyof SetupState;
+  key: 'mpd' | 'ollama' | 'bark' | 'ueberzug';
   name: string;
   emoji: string;
   description: string;
@@ -49,6 +61,12 @@ interface ComponentInfo {
 
 type ScreenType = 
   | 'loading'
+  | 'assistantMode'
+  | 'aiWelcome'
+  | 'aiProvider'
+  | 'aiConfig'
+  | 'aiTest'
+  | 'aiGuidedMode'
   | 'mainMenu'
   | 'selectInstall'
   | 'selectUninstall'
@@ -163,6 +181,11 @@ const loadState = (): SetupState => {
     }
   }
   return {
+    ai: {
+      provider: 'openrouter',
+      configured: false,
+      tested: false,
+    },
     mpd: { installed: false, configured: false },
     ollama: { installed: false, configured: false },
     bark: { installed: false, configured: false },
@@ -455,7 +478,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   // State management (lazy initialization)
   const [screen, setScreen] = useState<ScreenType>('loading');
   const [state, setState] = useState<SetupState>(() => loadState());
-  const [selectedComponents, setSelectedComponents] = useState<Set<keyof SetupState>>(() => new Set());
+  const [selectedComponents, setSelectedComponents] = useState<Set<'mpd' | 'ollama' | 'bark' | 'ueberzug'>>(() => new Set());
   const [input, setInput] = useState('');
   const [envConfig, setEnvConfig] = useState<Record<string, string>>(() => ({}));
   const [errorMessage, setErrorMessage] = useState('');
@@ -463,6 +486,20 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   const [progressStep, setProgressStep] = useState(0);
   const [confirmingAction, setConfirmingAction] = useState(false);
   const [awaitingConfirmationType, setAwaitingConfirmationType] = useState<'install' | 'uninstall' | null>(null);
+  
+  // Assistant state
+  const [assistantMode, setAssistantMode] = useState<AssistantMode>('guided');
+  const [assistantState, setAssistantState] = useState<AssistantState>('idle');
+  const [assistantMessage, setAssistantMessage] = useState('');
+  
+  // AI Configuration state
+  const [aiProviderSelection, setAiProviderSelection] = useState<'openrouter' | 'anthropic' | 'ollama' | 'copilot'>('openrouter');
+  const [aiApiKeyInput, setAiApiKeyInput] = useState('');
+  const [aiModelInput, setAiModelInput] = useState('');
+  const [aiTestingConnection, setAiTestingConnection] = useState(false);
+  const [aiTestResult, setAiTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [guidedMode, setGuidedMode] = useState(false);
+  const [guidedModeActive, setGuidedModeActive] = useState(false);
 
   // Derived state (useMemo)
   const availableUninstallComponents = useMemo(() => {
@@ -482,7 +519,8 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   useEffect(() => {
     if (screen === 'loading') {
       const timer = setTimeout(() => {
-        setScreen('mainMenu');
+        // Start with assistant mode selection
+        setScreen('assistantMode');
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -504,6 +542,179 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   }, [state]);
 
   // Event handlers (useCallback)
+  
+  // AI Configuration Handlers
+  const handleAssistantModeInput = useCallback((char: string) => {
+    if (screen !== 'assistantMode') return;
+    
+    if (char === '1') {
+      setAssistantMode('guided');
+      setAssistantState('idle');
+      setAssistantMessage(getAssistantMessage('guided', 'welcome'));
+      // Check if AI is configured - if not, start with AI setup
+      if (!state.ai.configured) {
+        setScreen('aiWelcome');
+      } else {
+        setScreen('mainMenu');
+      }
+    } else if (char === '2') {
+      setAssistantMode('fast');
+      setAssistantState('idle');
+      setAssistantMessage(getAssistantMessage('fast', 'welcome'));
+      if (!state.ai.configured) {
+        setScreen('aiWelcome');
+      } else {
+        setScreen('mainMenu');
+      }
+    } else if (char === '3') {
+      setAssistantMode('silent');
+      setAssistantState('idle');
+      setAssistantMessage('');
+      if (!state.ai.configured) {
+        setScreen('aiWelcome');
+      } else {
+        setScreen('mainMenu');
+      }
+    }
+  }, [screen, state.ai.configured]);
+
+  const handleAIWelcomeInput = useCallback((char: string) => {
+    if (screen !== 'aiWelcome') return;
+    if (char.toLowerCase() === 'y' || char === ' ' || char === '\r') {
+      setAssistantState('idle');
+      setAssistantMessage(getAssistantMessage(assistantMode, 'aiSetup'));
+      setScreen('aiProvider');
+    }
+  }, [screen, assistantMode]);
+
+  const handleAIProviderInput = useCallback((char: string) => {
+    if (screen !== 'aiProvider') return;
+    
+    if (char === '1') {
+      setAiProviderSelection('openrouter');
+      setScreen('aiConfig');
+    } else if (char === '2') {
+      setAiProviderSelection('anthropic');
+      setScreen('aiConfig');
+    } else if (char === '3') {
+      setAiProviderSelection('ollama');
+      setScreen('aiConfig');
+    } else if (char === '4') {
+      setAiProviderSelection('copilot');
+      setScreen('aiConfig');
+    }
+  }, [screen]);
+
+  const handleAIConfigInput = useCallback((char: string, key: any) => {
+    if (screen !== 'aiConfig') return;
+    
+    if (key.return) {
+      // Test the connection
+      setScreen('aiTest');
+    } else if (key.backspace || key.delete) {
+      setAiApiKeyInput(prev => prev.slice(0, -1));
+    } else if (!key.ctrl && !key.meta && char) {
+      setAiApiKeyInput(prev => prev + char);
+    }
+  }, [screen]);
+
+  const testAIConnection = useCallback(async () => {
+    setAiTestingConnection(true);
+    setAiTestResult(null);
+    
+    try {
+      const config: AIProviderConfig = {
+        provider: aiProviderSelection,
+        apiKey: aiApiKeyInput || undefined,
+        baseURL: aiProviderSelection === 'ollama' ? 'http://localhost:11434' : undefined,
+      };
+      
+      const agent = new AIAgent(config);
+      
+      // Simple test command
+      const response = await agent.processCommand('Say "Connection successful!" if you can read this.');
+      
+      if (response && response.message) {
+        setAiTestResult({ success: true, message: 'Connection successful!' });
+        
+        // Update state with AI config
+        setState((prev: SetupState) => ({
+          ...prev,
+          ai: {
+            provider: aiProviderSelection,
+            apiKey: aiApiKeyInput || undefined,
+            configured: true,
+            tested: true,
+          }
+        }));
+        
+        // Update env config
+        setEnvConfig(prev => ({
+          ...prev,
+          AI_PROVIDER: aiProviderSelection,
+          ...(aiApiKeyInput && aiProviderSelection === 'openrouter' ? { OPENROUTER_API_KEY: aiApiKeyInput } : {}),
+          ...(aiApiKeyInput && aiProviderSelection === 'anthropic' ? { ANTHROPIC_API_KEY: aiApiKeyInput } : {}),
+          ...(aiApiKeyInput && aiProviderSelection === 'copilot' ? { GITHUB_TOKEN: aiApiKeyInput } : {}),
+        }));
+        
+        // After 2 seconds, offer guided mode
+        setTimeout(() => {
+          setScreen('aiGuidedMode');
+        }, 2000);
+      } else {
+        setAiTestResult({ success: false, message: 'No response from AI. Please check your configuration.' });
+      }
+    } catch (error) {
+      setAiTestResult({ 
+        success: false, 
+        message: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      });
+    } finally {
+      setAiTestingConnection(false);
+    }
+  }, [aiProviderSelection, aiApiKeyInput]);
+
+  useEffect(() => {
+    if (screen === 'aiTest' && !aiTestingConnection && !aiTestResult) {
+      testAIConnection();
+    }
+  }, [screen, aiTestingConnection, aiTestResult, testAIConnection]);
+
+  const handleAITestInput = useCallback((char: string) => {
+    if (screen !== 'aiTest') return;
+    
+    if (aiTestResult) {
+      if (aiTestResult.success) {
+        // Success - move to guided mode offer
+        setScreen('aiGuidedMode');
+      } else {
+        // Failed - go back to config
+        if (char.toLowerCase() === 'r') {
+          setAiTestResult(null);
+          setScreen('aiConfig');
+        } else if (char.toLowerCase() === 'q') {
+          onExit();
+          exit();
+        }
+      }
+    }
+  }, [screen, aiTestResult, onExit, exit]);
+
+  const handleAIGuidedModeInput = useCallback((char: string) => {
+    if (screen !== 'aiGuidedMode') return;
+    
+    if (char.toLowerCase() === 'y') {
+      setGuidedMode(true);
+      setGuidedModeActive(true);
+      setAssistantMessage('Great! I\'m here to help. Let me guide you through the setup process...');
+      setScreen('mainMenu');
+    } else if (char.toLowerCase() === 'n') {
+      setGuidedMode(false);
+      setGuidedModeActive(false);
+      setScreen('mainMenu');
+    }
+  }, [screen]);
+
   const handleMainMenuInput = useCallback((char: string) => {
     if (screen !== 'mainMenu') return;
 
@@ -1041,6 +1252,18 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
   useInput((char: string, key: any) => {
     if (confirmingAction) {
       handleConfirmationInput(char);
+    } else if (screen === 'assistantMode') {
+      handleAssistantModeInput(char);
+    } else if (screen === 'aiWelcome') {
+      handleAIWelcomeInput(char);
+    } else if (screen === 'aiProvider') {
+      handleAIProviderInput(char);
+    } else if (screen === 'aiConfig') {
+      handleAIConfigInput(char, key);
+    } else if (screen === 'aiTest') {
+      handleAITestInput(char);
+    } else if (screen === 'aiGuidedMode') {
+      handleAIGuidedModeInput(char);
     } else if (screen === 'mainMenu') {
       handleMainMenuInput(char);
     } else if (screen === 'selectInstall') {
@@ -1069,6 +1292,341 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
     );
   }
 
+  if (screen === 'assistantMode') {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan">{ASCII_ART.logo}</Text>
+        
+        <Box marginTop={1}>
+          <Text>{ASCII_ART.robot}</Text>
+        </Box>
+
+        <BoxDecorated title="🤖 SETUP ASSISTANT MODE 🤖">
+          <BoxContentLine>
+            <Text bold color="green">Welcome to Conductor!</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>Choose how much help you'd like during setup:</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="cyan" bold>1. Guided</Text> <Text>(Recommended for first-time users)</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   I'll explain each step and offer suggestions</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   Perfect if you want to learn as you go!</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="yellow" bold>2. Fast</Text> <Text>(For experienced users)</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   I'll stay out of your way, only warning about important stuff</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   Get through setup quickly!</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="gray" bold>3. Silent</Text> <Text>(Expert mode)</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   I'll only appear for errors and required confirmations</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>   Maximum speed, minimum assistance</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="magenta" dimColor>💡 You can always change this later!</Text>
+          </BoxContentLine>
+        </BoxDecorated>
+
+        <Box marginTop={1}>
+          <Text color="cyan">Select mode (1, 2, or 3): </Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'aiWelcome') {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan">{ASCII_ART.logo}</Text>
+        
+        <Box marginTop={1}>
+          <Text>{ASCII_ART.robot}</Text>
+        </Box>
+
+        {assistantMessage && (
+          <Box marginTop={1}>
+            <Assistant mode={assistantMode} state={assistantState} message={assistantMessage} />
+          </Box>
+        )}
+
+        <BoxDecorated title="🤖 AI-POWERED SETUP ASSISTANT 🤖">
+          <BoxContentLine>
+            <Text bold color="green">Let's configure your AI!</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>Before we begin, let's set up your AI assistant.</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>This will power:</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>  {ASCII_ART.star} Natural language music control</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>  {ASCII_ART.star} AI DJ hosts with commentary</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>  {ASCII_ART.star} Intelligent playlist generation</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>  {ASCII_ART.star} Optional: Guided setup assistance</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="magenta">✨ Let's get started! ✨</Text>
+          </BoxContentLine>
+        </BoxDecorated>
+
+        <Box marginTop={1}>
+          <Text color="cyan">Press any key to continue...</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'aiProvider') {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan" bold>━━━ 🤖 SELECT AI PROVIDER ━━━</Text>
+        
+        <Box marginTop={1} flexDirection="column">
+          <Text></Text>
+          <Text>Choose your AI provider:</Text>
+          <Text></Text>
+          
+          <Text>  <Text color={aiProviderSelection === 'openrouter' ? 'green' : 'white'} bold={aiProviderSelection === 'openrouter'}>1</Text>. <Text color="green">OpenRouter</Text> (Recommended) - Access to multiple AI models</Text>
+          <Text>     Remote, requires API key (~$0.001-0.01 per request)</Text>
+          <Text></Text>
+          
+          <Text>  <Text color={aiProviderSelection === 'anthropic' ? 'green' : 'white'} bold={aiProviderSelection === 'anthropic'}>2</Text>. Anthropic Claude - Direct access to Claude models</Text>
+          <Text>     Remote, requires API key (~$0.003-0.015 per request)</Text>
+          <Text></Text>
+          
+          <Text>  <Text color={aiProviderSelection === 'ollama' ? 'green' : 'white'} bold={aiProviderSelection === 'ollama'}>3</Text>. Ollama - Free local AI (install separately)</Text>
+          <Text>     Local, no API key needed, requires installation</Text>
+          <Text></Text>
+          
+          <Text>  <Text color={aiProviderSelection === 'copilot' ? 'green' : 'white'} bold={aiProviderSelection === 'copilot'}>4</Text>. GitHub Copilot - Use your Copilot subscription</Text>
+          <Text>     Remote, requires GitHub token with Copilot access</Text>
+          <Text></Text>
+          
+          <Text color="yellow">💡 Tip: OpenRouter is recommended for best results and flexibility!</Text>
+        </Box>
+
+        <Box marginTop={1}>
+          <Text color="cyan">Select option (1-4): </Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'aiConfig') {
+    const needsApiKey = aiProviderSelection !== 'ollama';
+    
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan" bold>━━━ 🔑 CONFIGURE {aiProviderSelection.toUpperCase()} ━━━</Text>
+        
+        <Box marginTop={1} flexDirection="column">
+          <Text></Text>
+          
+          {aiProviderSelection === 'openrouter' && (
+            <>
+              <Text>To use OpenRouter:</Text>
+              <Text>  1. Visit <Text color="cyan" underline>https://openrouter.ai/</Text></Text>
+              <Text>  2. Sign up for a free account</Text>
+              <Text>  3. Add some credits (starts at $5)</Text>
+              <Text>  4. Get your API key from Settings</Text>
+              <Text></Text>
+              <Text color="green">✨ Recommended models: Claude 3.5 Sonnet, GPT-4o</Text>
+            </>
+          )}
+          
+          {aiProviderSelection === 'anthropic' && (
+            <>
+              <Text>To use Anthropic Claude:</Text>
+              <Text>  1. Visit <Text color="cyan" underline>https://console.anthropic.com/</Text></Text>
+              <Text>  2. Sign up for an account</Text>
+              <Text>  3. Add credits to your account</Text>
+              <Text>  4. Create an API key</Text>
+            </>
+          )}
+          
+          {aiProviderSelection === 'ollama' && (
+            <>
+              <Text color="green">Ollama runs locally - no API key needed!</Text>
+              <Text></Text>
+              <Text>You can install it later in the wizard.</Text>
+              <Text>Press Enter to continue...</Text>
+            </>
+          )}
+          
+          {aiProviderSelection === 'copilot' && (
+            <>
+              <Text>To use GitHub Copilot:</Text>
+              <Text>  1. Have an active GitHub Copilot subscription</Text>
+              <Text>  2. Visit <Text color="cyan" underline>https://github.com/settings/tokens</Text></Text>
+              <Text>  3. Create a token with 'copilot' scope</Text>
+            </>
+          )}
+          
+          {needsApiKey && (
+            <>
+              <Text></Text>
+              <Text></Text>
+              <Text>Enter your API key:</Text>
+              <Box>
+                <Text color="green">🔑 </Text>
+                <Text>{aiApiKeyInput.split('').map((_, i) => i < aiApiKeyInput.length - 4 ? '*' : aiApiKeyInput[i]).join('')}</Text>
+                <Text>_</Text>
+              </Box>
+              <Text></Text>
+              <Text color="gray" dimColor>(Your key will be stored securely in .env)</Text>
+            </>
+          )}
+        </Box>
+
+        <Box marginTop={1}>
+          <Text color="cyan">{needsApiKey ? 'Press Enter when ready to test connection...' : 'Press Enter to continue...'}</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'aiTest') {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan" bold>━━━ 🧪 TESTING CONNECTION ━━━</Text>
+        
+        <Box marginTop={1} flexDirection="column">
+          <Text></Text>
+          
+          {aiTestingConnection && (
+            <>
+              <LoadingAnimation message={`Testing connection to ${aiProviderSelection}...`} />
+              <Text></Text>
+              <Text color="gray" dimColor>This may take a few seconds...</Text>
+            </>
+          )}
+          
+          {aiTestResult && (
+            <>
+              {aiTestResult.success ? (
+                <>
+                  <Text color="green" bold>✓ Success!</Text>
+                  <Text></Text>
+                  <Text>{aiTestResult.message}</Text>
+                  <Text></Text>
+                  <Text color="green">Your AI is ready to help you! 🎉</Text>
+                  <Text></Text>
+                  <Text color="cyan">Press any key to continue...</Text>
+                </>
+              ) : (
+                <>
+                  <Text color="red" bold>✗ Connection Failed</Text>
+                  <Text></Text>
+                  <Text color="red">{aiTestResult.message}</Text>
+                  <Text></Text>
+                  <Text>Possible issues:</Text>
+                  <Text>  • Check your API key</Text>
+                  <Text>  • Verify your account has credits</Text>
+                  <Text>  • Check your internet connection</Text>
+                  {aiProviderSelection === 'ollama' && (
+                    <Text>  • Make sure Ollama is running: ollama serve</Text>
+                  )}
+                  <Text></Text>
+                  <Text color="yellow">Press R to retry configuration | Q to quit</Text>
+                </>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'aiGuidedMode') {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="cyan">{ASCII_ART.logo}</Text>
+        
+        <Box marginTop={1}>
+          <Text>{ASCII_ART.robot}</Text>
+        </Box>
+
+        <BoxDecorated title="🎓 GUIDED SETUP MODE 🎓">
+          <BoxContentLine>
+            <Text bold color="magenta">Your AI is now configured!</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>Would you like me to guide you through the rest</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text>of the setup with helpful tips and explanations?</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="green">✓ I'll explain each step</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="green">✓ Suggest recommended options</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="green">✓ Answer questions along the way</Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text></Text>
+          </BoxContentLine>
+          <BoxContentLine>
+            <Text color="cyan">You can always disable this later!</Text>
+          </BoxContentLine>
+        </BoxDecorated>
+
+        <Box marginTop={1}>
+          <Text color="green">Enable guided mode? (Y/n): </Text>
+        </Box>
+      </Box>
+    );
+  }
+
   if (screen === 'mainMenu') {
     return (
       <Box flexDirection="column" padding={1}>
@@ -1078,10 +1636,21 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
           <Text>{ASCII_ART.robot}</Text>
         </Box>
 
+        {guidedModeActive && assistantMessage && (
+          <Box marginTop={1} padding={1} borderStyle="round" borderColor="magenta">
+            <Text color="magenta">🤖 Assistant: {assistantMessage}</Text>
+          </Box>
+        )}
+
         <BoxDecorated title="🎵 WELCOME TO CONDUCTOR SETUP! 🎵">
           <BoxContentLine>
             <Text>I'm your friendly setup assistant!</Text>
           </BoxContentLine>
+          {state.ai.configured && (
+            <BoxContentLine>
+              <Text color="green">✓ AI configured: {state.ai.provider} {guidedModeActive && '(Guided mode ON)'}</Text>
+            </BoxContentLine>
+          )}
           <BoxContentLine>
             <Text></Text>
           </BoxContentLine>
@@ -1092,7 +1661,7 @@ export const SetupWizard = React.memo(({ onComplete, onExit }: SetupWizardProps)
             <Text>{ASCII_ART.star} Install music player (MPD)</Text>
           </BoxContentLine>
           <BoxContentLine>
-            <Text>{ASCII_ART.star} Set up AI features (Ollama)</Text>
+            <Text>{ASCII_ART.star} Set up local AI (Ollama - optional)</Text>
           </BoxContentLine>
           <BoxContentLine>
             <Text>{ASCII_ART.star} Add DJ voices (Bark TTS)</Text>
