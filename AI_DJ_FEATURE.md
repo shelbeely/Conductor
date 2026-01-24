@@ -297,6 +297,7 @@ QWEN_CUSTOM_VOICES='{"Host 1": "my_custom_male_voice", "Host 2": "my_custom_fema
 - **High quality**: Preserves speaker characteristics and acoustic environment
 - **Multi-language**: Cloned voices work across all 10+ supported languages
 - **Voice design**: Create voices by text description (age, gender, tone, character)
+- **🆕 Auto-generate multiple DJ voices**: Create multiple host voices from a single audio sample
 
 **How to clone a voice:**
 1. Record 10-60 seconds of high-quality audio (WAV, MP3, M4A)
@@ -304,9 +305,49 @@ QWEN_CUSTOM_VOICES='{"Host 1": "my_custom_male_voice", "Host 2": "my_custom_fema
 3. Configure `QWEN_CUSTOM_VOICES` to map speakers to custom voice IDs
 4. DJ hosts will automatically use your custom voices
 
+**🆕 Auto-generate multiple DJ voices from one sample:**
+The easiest way to create multiple DJ hosts with different voices from a single audio clip:
+
+```typescript
+// Upload one audio sample and automatically generate multiple DJ voices
+const qwen = new QwenTTS(config);
+const result = await qwen.generateDJVoicesFromSample(
+  '/path/to/single-audio-sample.wav',
+  'en',  // language
+  2      // number of hosts (default: 2, max: 5)
+);
+
+// Returns voices like:
+// [
+//   { hostName: 'Host 1', voiceId: 'dj_host_1_...', description: 'Energetic male host...' },
+//   { hostName: 'Host 2', voiceId: 'dj_host_2_...', description: 'Friendly female host...' }
+// ]
+
+// Voices are automatically mapped and ready to use!
+```
+
+**How auto-generation works:**
+1. **Upload one audio sample** (3-20 seconds of any voice)
+2. **AI generates variations** using voice design technology
+3. **Multiple distinct voices** created with different characteristics:
+   - Host 1: Energetic male with warm conversational style
+   - Host 2: Friendly female with upbeat engaging style
+   - Host 3: Mature male with smooth professional delivery
+   - Host 4: Young female with cheerful dynamic energy
+   - Host 5: Casual male with relaxed friendly style
+4. **Automatically configured** for DJ dialogue
+5. **Ready to use** - no additional configuration needed
+
+**Benefits of auto-generation:**
+- ✅ One audio sample creates multiple distinct voices
+- ✅ No need to record separate samples for each host
+- ✅ Voices are automatically diverse (different genders, tones, styles)
+- ✅ Voices maintain quality and naturalness
+- ✅ Instant setup for multi-host DJ dialogue
+
 **Example workflow:**
 ```typescript
-// Enroll a custom voice
+// Traditional method: Manual voice enrollment
 const qwen = new QwenTTS(config);
 await qwen.enrollVoice(
   '/path/to/audio.wav',

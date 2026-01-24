@@ -833,6 +833,44 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
 
 **Voice Cloning Workflow:**
 
+**Method 1: Auto-generate multiple DJ voices from one sample (Recommended)**
+
+The easiest way to set up multiple DJ hosts:
+
+1. **Upload one audio sample:**
+   - Prepare a single audio file (3-20 seconds, WAV/MP3/M4A, minimum 24kHz)
+   - Can be any voice - your own, a friend's, or any reference audio
+
+2. **Generate multiple voices automatically:**
+   ```typescript
+   const qwen = new QwenTTS(config);
+   const result = await qwen.generateDJVoicesFromSample(
+     '/path/to/audio.wav',
+     'en',  // language
+     2      // number of hosts (2-5)
+   );
+   // Returns: [
+   //   { hostName: 'Host 1', voiceId: '...', description: 'Energetic male...' },
+   //   { hostName: 'Host 2', voiceId: '...', description: 'Friendly female...' }
+   // ]
+   ```
+
+3. **Voices are automatically configured:**
+   - Each host gets a unique voice with different characteristics
+   - Host 1: Energetic male with warm conversational style
+   - Host 2: Friendly female with upbeat engaging style
+   - Host 3-5: Additional variations if requested
+   - All voices are automatically mapped and ready to use
+
+4. **Start using immediately:**
+   - No additional configuration needed
+   - Voices are already set up for DJ dialogue
+   - Supports 2-5 hosts from one audio sample
+
+**Method 2: Manual voice enrollment (Advanced)**
+
+For full control over each voice:
+
 1. **Enroll a custom voice:**
    - Prepare audio sample (10-60 seconds, WAV/MP3/M4A, minimum 24kHz)
    - Call `enrollVoice()` API with audio file path and custom voice ID
@@ -849,6 +887,7 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
 
 **Voice Cloning API Methods:**
 - `enrollVoice(audioPath, voiceId, language, description)` - Register a new voice
+- `generateDJVoicesFromSample(audioPath, language, numHosts)` - 🆕 Auto-generate multiple DJ voices from one sample
 - `listCustomVoices()` - Get list of enrolled voices
 - `setCustomVoice(speaker, voiceId)` - Map speaker to custom voice
 - `getCustomVoice(speaker)` - Get custom voice for speaker
@@ -865,8 +904,10 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
 - **Privacy:** Cloud-based (audio sent to Alibaba Cloud)
 - **Voice cloning:** ✅ Full support with 3-20 second audio samples
 - **Voice design:** Create voices via text descriptions
+- **🆕 Auto-generation:** Create multiple DJ voices from single audio sample
 - **API endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/tts/synthesis`
 - **Voice enrollment endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-enrollment`
+- **Voice design endpoint:** `https://dashscope.aliyuncs.com/api/v1/services/audio/voice-design`
 - **Open source:** Models available at https://github.com/QwenLM/Qwen3-TTS
 
 ### Audio Playback Configuration
@@ -1068,7 +1109,32 @@ TTS_AUDIO_PLAYER=mpg123
 TTS_CACHE_DIR=/tmp/conductor-tts
 ```
 
-#### Example 7: TTS Disabled
+#### Example 7: Qwen3 TTS with Auto-Generated DJ Voices (Easiest Setup)
+```bash
+# Enable TTS with Qwen3 auto-generation
+TTS_ENABLED=true
+TTS_PROVIDER=qwen
+DASHSCOPE_API_KEY=your_api_key_here
+
+# Voice cloning/design models
+QWEN_TTS_VOICE_CLONE_MODEL=qwen3-tts-vc-realtime-2025-11-27
+QWEN_TTS_MODEL=qwen3-tts-flash
+
+# Enable AI DJ
+AI_DJ_ENABLED=true
+AI_DJ_FREQUENCY=4
+
+# Audio playback
+TTS_AUDIO_PLAYER=mpg123
+TTS_CACHE_DIR=/tmp/conductor-tts
+
+# To auto-generate multiple DJ voices, call via code:
+# const qwen = new QwenTTS(config);
+# await qwen.generateDJVoicesFromSample('/path/to/audio.wav', 'en', 2);
+# Voices are automatically configured - no QWEN_CUSTOM_VOICES needed!
+```
+
+#### Example 8: TTS Disabled
 ```bash
 # Disable all TTS features
 TTS_ENABLED=false
