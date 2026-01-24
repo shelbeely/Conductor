@@ -227,6 +227,7 @@ switch shuffle
 - **↑ (Up arrow)**: Scroll back through command history
 - **↓ (Down arrow)**: Scroll forward through command history  
 - **Enter**: Submit your command to the AI
+- **L**: Toggle lyrics display (shows/hides synced lyrics)
 - **Ctrl+C**: Quit Conductor
 
 Command history works like a terminal. Use up/down arrows to recall what you've typed before. This saves time when you want to run similar commands.
@@ -313,6 +314,36 @@ mpc rm "Old Playlist"
 ```
 
 After loading a playlist with `mpc`, the tracks appear in Conductor's queue view automatically.
+
+## Lyrics display
+
+Conductor can display synced lyrics that scroll along with your music.
+
+**Viewing lyrics:**
+
+Press the **L** key to toggle the lyrics display on/off, or use natural language commands:
+
+```
+show lyrics
+display lyrics
+hide lyrics
+close lyrics
+```
+
+**How it works:**
+
+- Lyrics are fetched automatically from LRCLib (lrclib.net) when available
+- Synced lyrics scroll in real-time as the track plays
+- Current line is highlighted so you can sing along
+- If synced lyrics aren't available, plain text lyrics are shown instead
+- If no lyrics exist for a track, you'll see a "No lyrics available" message
+
+**Tips:**
+
+- Lyrics are cached, so repeated plays don't require new API calls
+- The lyrics view appears in a bordered box on screen
+- Press L again to hide the lyrics and get more screen space
+- Lyrics sync automatically with the playback position - no manual scrolling needed
 
 ## Volume and playback settings
 
